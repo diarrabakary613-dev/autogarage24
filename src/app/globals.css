@@ -1,26 +1,128 @@
 @import "tailwindcss";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/manrope";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*
+ * AutoGarage24 — Design tokens
+ * Palette ufficiale del brief (direzione PREMIUM).
+ * Tutti i colori dell'interfaccia derivano da questi valori.
+ */
+@theme {
+  /* Colori del brand */
+  --color-ink: #111318;          /* Nero profondo */
+  --color-graphite: #252a32;     /* Grigio scuro testi/superfici */
+  --color-slate: #737780;        /* Grigio secondario (palette): icone, bordi, grafica */
+  --color-muted: #666a73;        /* Testo secondario: stesso tono, contrasto AA ≥ 4.5:1 su bianco e grigio chiaro */
+  --color-mist: #f4f5f7;         /* Grigio chiaro */
+  --color-white: #ffffff;
+  --color-orange: #f47b20;       /* Accento principale (CTA) */
+  --color-orange-600: #d9650f;   /* Hover CTA */
+  --color-orange-700: #b4520a;   /* Testo arancione su bianco (contrasto AA) */
+  --color-orange-50: #fef3ea;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* Linee e stati */
+  --color-line: #e4e6ea;
+  --color-line-strong: #cfd2d8;
+  --color-success: #1f8a4c;
+  --color-success-50: #eaf6ef;
+  --color-danger: #c62f2f;
+  --color-danger-50: #fcecec;
+  --color-warning: #a35f00;
+  --color-warning-50: #fff5e0;
+  --color-info: #2559b8;
+  --color-info-50: #ebf1fc;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  /* Tipografia */
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Manrope Variable", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+
+  /* Forme e ombre discrete */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --shadow-card: 0 1px 2px rgb(17 19 24 / 0.04), 0 4px 16px rgb(17 19 24 / 0.06);
+  --shadow-lift: 0 2px 4px rgb(17 19 24 / 0.06), 0 12px 32px rgb(17 19 24 / 0.10);
+
+  /* Animazioni */
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
+  @keyframes shimmer {
+    0% { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-white font-sans text-graphite antialiased;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display text-ink;
+    letter-spacing: -0.02em;
+  }
+  /* Focus sempre visibile per la navigazione da tastiera */
+  :focus-visible {
+    outline: 2px solid var(--color-orange);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--color-orange-50);
+    color: var(--color-ink);
+  }
+}
+
+/* Rispetto della preferenza "riduci animazioni" */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Animazioni del marketing (disattivate con "riduci animazioni")      */
+/* ------------------------------------------------------------------ */
+@keyframes ag-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes ag-streak {
+  0% { transform: translateX(40px); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translateX(-60px); opacity: 0; }
+}
+@keyframes ag-road {
+  from { transform: translateX(0); }
+  to { transform: translateX(-140px); }
+}
+@keyframes ag-fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ag-marquee-track {
+  animation: ag-marquee 48s linear infinite;
+}
+.ag-marquee:hover .ag-marquee-track,
+.ag-marquee:focus-within .ag-marquee-track,
+.ag-marquee[data-paused="true"] .ag-marquee-track {
+  animation-play-state: paused;
+}
+.ag-streaks line { animation: ag-streak 2.4s ease-out infinite; }
+.ag-streaks line:nth-child(2) { animation-delay: 0.6s; }
+.ag-streaks line:nth-child(3) { animation-delay: 1.2s; }
+.ag-road { animation: ag-road 1.6s linear infinite; }
+.ag-fade-up { animation: ag-fade-up 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ag-marquee-track { animation: none; transform: none; }
+  .ag-marquee-duplicate { display: none; }
+  .ag-marquee-track { flex-wrap: wrap; justify-content: center; width: 100%; }
+  .ag-streaks line, .ag-road, .ag-fade-up { animation: none; }
 }

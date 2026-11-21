@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +40,25 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# netlify
+.netlify
+
+# AutoGarage24: file locali, build e possibili segreti
+*.tsbuildinfo
+.vercel
+*.zip
+*.dump
+backup-*
+storage-backup/
+supabase/.temp/
+supabase/.branches/
+.env
+.env.*
+!.env.example
+*.key
+*.p12
+.DS_Store
+Thumbs.db
+avvia-sito.bat
+LEGGIMI-AVVIO.txt

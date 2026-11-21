@@ -5,8 +5,13 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  {
+    // Parametri richiesti dalla firma ma non usati: convenzione con prefisso "_".
+    rules: { "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_", destructuredArrayIgnorePattern: "^_" }] },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
+    "supabase/functions/**",
     // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",

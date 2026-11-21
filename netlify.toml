@@ -1,0 +1,8 @@
+# Configurazione Netlify per AutoGarage24 (Next.js 16, adattatore OpenNext automatico).
+# Nessun segreto qui: le variabili si impostano nel pannello Netlify.
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"

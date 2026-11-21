@@ -17,15 +17,28 @@ export type ListingCardData = Pick<
 const CARD_COLUMNS =
   "id, slug, title, price_cents, negotiable, city, province, seller_kind, seller_name, make_name, model, version, year, mileage_km, fuel, transmission, power_kw, cover_path, status, published_at, neo_result, source";
 
-/**
- * Ricerca degli annunci pubblicati, con filtri e ordinamento applicati dal
- * database (una sola query + conteggio, paginata).
- */
-export async function searchListings(f: ListingFilters): Promise<{ items: ListingCardData[]; total: number; error: boolean }> {
-  const supabase = createPublicClient();
-  if (!supabase) return { items: [], total: 0, error: false };
+type PublicClient = NonNullable<ReturnType<typeof createPublicClient>>;
 
-  let q = supabase.from("listing_search").select(CARD_COLUMNS, { count: "exact" }).eq("status", "pubblicato");
+/** Interfaccia minima dei filtri PostgREST usati dalla ricerca (comune a ricerca e conteggio). */
+interface Filterable<T> {
+  eq(column: string, value: unknown): T;
+  ilike(column: string, pattern: string): T;
+  gte(column: string, value: unknown): T;
+  lte(column: string, value: unknown): T;
+  in(column: string, values: readonly unknown[]): T;
+}
+
+const NO_RESULTS_ID = "00000000-0000-0000-0000-000000000000";
+
+/** Annunci entro il raggio richiesto (solo se l'utente ha condiviso la posizione). */
+async function nearbyIds(supabase: PublicClient, f: ListingFilters): Promise<string[] | null> {
+  if (f.lat === undefined || f.lng === undefined) return null;
+  const { data } = await supabase.rpc("listings_within", { p_lat: f.lat, p_lng: f.lng, p_radius_km: f.raggio ?? 25 });
+  return (data ?? []).map((n) => n.listing_id).slice(0, 500);
+}
+
+function applyListingFilters<T extends Filterable<T>>(query: T, f: ListingFilters, near: string[] | null): T {
+  let q = query;
   if (f.marca) q = q.eq("make_slug", f.marca);
   if (f.modello) q = q.ilike("model", `%${f.modello}%`);
   if (f.q) q = q.ilike("search_text", `%${f.q.toLowerCase()}%`);
@@ -43,24 +56,42 @@ export async function searchListings(f: ListingFilters): Promise<{ items: Listin
   if (f.venditore) q = q.eq("seller_kind", f.venditore);
   if (f.citta) q = q.ilike("city", f.citta);
   if (f.cap) q = q.eq("postal_code", f.cap);
-
   const neo = neoValues(f.neo);
   if (neo) q = q.in("neo_result", neo);
-  if (f.lat !== undefined && f.lng !== undefined) {
-    const { data: near } = await supabase.rpc("listings_within", { p_lat: f.lat, p_lng: f.lng, p_radius_km: f.raggio ?? 25 });
-    const ids = (near ?? []).map((n) => n.listing_id);
-    q = ids.length ? q.in("id", ids.slice(0, 500)) : q.eq("id", "00000000-0000-0000-0000-000000000000");
-  }
+  if (near) q = near.length ? q.in("id", near) : q.eq("id", NO_RESULTS_ID);
+  return q;
+}
 
+/** Solo il numero di annunci pubblicati che rispettano i filtri (per il pulsante «Mostra N annunci»). */
+export async function countListings(f: ListingFilters): Promise<number | null> {
+  const supabase = createPublicClient();
+  if (!supabase) return null;
+  const near = await nearbyIds(supabase, f);
+  const { count, error } = await applyListingFilters(supabase.from("listing_search").select("id", { count: "exact", head: true }).eq("status", "pubblicato"), f, near);
+  return error ? null : (count ?? 0);
+}
+
+/**
+ * Ricerca degli annunci pubblicati, con filtri e ordinamento applicati dal
+ * database (una sola query + conteggio, paginata).
+ */
+export async function searchListings(f: ListingFilters): Promise<{ items: ListingCardData[]; total: number; error: boolean }> {
+  const supabase = createPublicClient();
+  if (!supabase) return { items: [], total: 0, error: false };
+
+  const near = await nearbyIds(supabase, f);
+  const q = applyListingFilters(supabase.from("listing_search").select(CARD_COLUMNS, { count: "exact" }).eq("status", "pubblicato"), f, near);
+
+  let ordered = q;
   switch (f.ordina) {
-    case "prezzo_asc": q = q.order("price_cents", { ascending: true }); break;
-    case "prezzo_desc": q = q.order("price_cents", { ascending: false }); break;
-    case "anno_desc": q = q.order("year", { ascending: false, nullsFirst: false }); break;
-    case "km_asc": q = q.order("mileage_km", { ascending: true, nullsFirst: false }); break;
-    default: q = q.order("published_at", { ascending: false });
+    case "prezzo_asc": ordered = q.order("price_cents", { ascending: true }); break;
+    case "prezzo_desc": ordered = q.order("price_cents", { ascending: false }); break;
+    case "anno_desc": ordered = q.order("year", { ascending: false, nullsFirst: false }); break;
+    case "km_asc": ordered = q.order("mileage_km", { ascending: true, nullsFirst: false }); break;
+    default: ordered = q.order("published_at", { ascending: false });
   }
   const from = (f.pagina - 1) * PAGE_SIZE;
-  const { data, count, error } = await q.range(from, from + PAGE_SIZE - 1);
+  const { data, count, error } = await ordered.range(from, from + PAGE_SIZE - 1);
   if (error) return { items: [], total: 0, error: true };
 
   return { items: (data ?? []) as ListingCardData[], total: count ?? 0, error: false };

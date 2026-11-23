@@ -3,6 +3,7 @@ import { seoMetadata } from "@/lib/seo/overrides";
 import Link from "next/link";
 import { Suspense } from "react";
 import { ArrowRight, Search, X } from "lucide-react";
+import { QuickSearchBar } from "@/components/professionals/quick-search";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Alert, EmptyState, Skeleton } from "@/components/ui/feedback";
 import { Checkbox, Field, Input, Select } from "@/components/ui/form";
@@ -121,9 +122,15 @@ async function Results({ searchParams }: { searchParams: PageProps<"/ricambi">["
   const linkFilters: Partial<PartFilters> = chosenVehicle ? { ...f, auto_marca: undefined, auto_modello: undefined, anno: undefined, versione: undefined, motore: undefined } : f;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[290px_1fr] lg:gap-8">
-      <form action={base} method="get" className="flex flex-col gap-4 rounded-2xl border border-line bg-white p-5 shadow-card" role="search">
-        <Field id="rf-q" label="Nome o codice del ricambio"><Input id="rf-q" name="q" defaultValue={f.q} placeholder="Es. pastiglie freno, 77365555" /></Field>
+    <div className="flex flex-col gap-6">
+      <QuickSearchBar action={base} param="q" label="Cerca un ricambio per nome o codice" placeholder="Nome o codice del ricambio" defaultValue={f.q ?? ""} />
+      <details className="group rounded-2xl border border-line bg-white shadow-card">
+        <summary className="flex cursor-pointer items-center justify-between px-5 py-4 font-semibold">
+          <span>Filtri avanzati <span className="font-normal text-muted">(facoltativi: codice OEM, categoria, la tua auto, prezzo…)</span></span>
+          <span className="text-sm text-orange-700 group-open:hidden">Mostra</span>
+        </summary>
+      <form action={`${base}#cerca`} method="get" className="grid gap-4 border-t border-line p-5 sm:grid-cols-2 lg:grid-cols-3" role="search" aria-label="Filtri avanzati">
+        {f.q && <input type="hidden" name="q" value={f.q} />}
         <Field id="rf-code" label="Codice OEM o del produttore" optional><Input id="rf-code" name="codice" defaultValue={f.codice} /></Field>
         <Field id="rf-cat" label="Categoria"><Select id="rf-cat" name="categoria" defaultValue={f.categoria ?? ""}><option value="">Tutte</option>{roots.map((r) => <optgroup key={r.id} label={r.name}><option value={r.slug}>{r.name} (tutto)</option>{cats.filter((c) => c.parent_id === r.id).map((c) => <option key={c.id} value={c.slug}>{c.name}</option>)}</optgroup>)}</Select></Field>
         <Field id="rf-brand" label="Marca del produttore" optional><Input id="rf-brand" name="marca" defaultValue={f.marca} placeholder="Es. Bosch, Brembo" /></Field>
@@ -150,8 +157,9 @@ async function Results({ searchParams }: { searchParams: PageProps<"/ricambi">["
         <Field id="rf-sel" label="Venditore"><Select id="rf-sel" name="venditore" defaultValue={f.venditore ?? ""}><option value="">Tutti</option><option value="professionista">Professionisti</option><option value="privato">Privati</option></Select></Field>
         <Checkbox id="rf-av" name="disponibili" value="1" defaultChecked={f.disponibili} label="Solo disponibili (non esauriti)" />
         <Field id="rf-o" label="Ordina per"><Select id="rf-o" name="ordina" defaultValue={f.ordina}>{Object.entries(PART_SORTS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</Select></Field>
-        <Button type="submit" className="w-full">Cerca</Button>
+        <Button type="submit" className="w-full self-end">Applica i filtri</Button>
       </form>
+      </details>
       <section aria-labelledby="pr-t" className="flex min-w-0 flex-col gap-5">
         <h2 id="pr-t" className="text-lg font-bold" aria-live="polite">{error ? "Risultati non disponibili" : `${total} ${total === 1 ? "ricambio" : "ricambi"}`}</h2>
         {chips.length > 0 && (

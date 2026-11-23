@@ -14,11 +14,11 @@ export const HOME = {
     quickLinksLabel: "Cosa cerchi?",
     quickLinks: [
       { label: "Prima auto", href: "/auto-per-neopatentati" },
-      { label: "Officina", href: "/garages" },
-      { label: "Meccanico", href: "/meccanici" },
+      { label: "Officina", href: "/garages#cerca" },
+      { label: "Meccanico", href: "/meccanici#cerca" },
       { label: "Auto usata", href: "/auto-usate" },
-      { label: "Ricambi", href: "/ricambi" },
-      { label: "Tagliando", href: "/servizi-auto" },
+      { label: "Ricambi", href: "/ricambi#cerca" },
+      { label: "Tagliando", href: "/garages?q=tagliando#cerca" },
     ],
   },
   marquee: {

@@ -1,12 +1,10 @@
 import Link from "next/link";
-import { Suspense } from "react";
 import { Store, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, EmptyState } from "@/components/ui/feedback";
 import { Checkbox, Field, Input, Select } from "@/components/ui/form";
 import { Pagination } from "@/components/ui/misc";
 import { MapView } from "@/components/maps/map-view";
-import { LocateButton } from "@/components/maps/locate-button";
 import { BRANDS } from "@/config/brands";
 import { getCategories, parseProFilters, PRO_PAGE, PRO_SORTS, proHref, searchProfessionals, type ProType } from "@/lib/data/professionals";
 import { getCurrentUser } from "@/lib/auth/session";
@@ -66,10 +64,14 @@ export async function ProSearch({ type, base, params, register }: { type: Exclud
   });
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[290px_1fr] lg:gap-8">
-      <ProQuickSearch base={base as "/garages" | "/meccanici"} kind={type} defaultValue={requested.cerca ?? ""} className="lg:col-span-2" />
-      <form action={base} method="get" className="order-last flex flex-col gap-4 rounded-2xl border border-line bg-white p-5 shadow-card lg:order-none" role="search" aria-label="Filtri avanzati">
-        <p className="text-sm font-bold">Filtri avanzati</p>
+    <div className="flex flex-col gap-6">
+      <ProQuickSearch base={base as "/garages" | "/meccanici"} kind={type} defaultValue={requested.cerca ?? ""} />
+      <details className="group rounded-2xl border border-line bg-white shadow-card">
+        <summary className="flex cursor-pointer items-center justify-between px-5 py-4 font-semibold">
+          <span>Filtri avanzati <span className="font-normal text-muted">(facoltativi: servizio, marca, solo verificate)</span></span>
+          <span className="text-sm text-orange-700 group-open:hidden">Mostra</span>
+        </summary>
+      <form action={base} method="get" className="grid gap-4 border-t border-line p-5 sm:grid-cols-2 lg:grid-cols-3" role="search" aria-label="Filtri avanzati">
         {requested.cerca && <input type="hidden" name="cerca" value={requested.cerca} />}
         {!fromBar && <Field id="pf-q" label={type === "officina" ? "Nome dell'officina" : "Nome del professionista"}><Input id="pf-q" name="q" defaultValue={f.q} /></Field>}
         <div className="grid grid-cols-[1fr_100px] gap-3">
@@ -92,9 +94,9 @@ export async function ProSearch({ type, base, params, register }: { type: Exclud
           </>
         )}
         <Field id="pf-o" label="Ordina per"><Select id="pf-o" name="ordina" defaultValue={f.ordina}>{Object.entries(PRO_SORTS).filter(([k]) => k !== "distanza" || f.lat !== undefined).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</Select></Field>
-        <Suspense fallback={null}><LocateButton /></Suspense>
-        <Button type="submit" className="w-full">Cerca</Button>
+        <Button type="submit" className="w-full self-end">Applica i filtri</Button>
       </form>
+      </details>
 
       <section aria-labelledby="pro-res" className="flex min-w-0 flex-col gap-5">
         <h2 id="pro-res" className="text-lg font-bold" aria-live="polite">{error ? "Risultati non disponibili" : `${total} ${total === 1 ? "risultato" : "risultati"}`}</h2>

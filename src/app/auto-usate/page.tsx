@@ -2,12 +2,11 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { seoMetadata } from "@/lib/seo/overrides";
 import { Suspense } from "react";
-import { Search } from "lucide-react";
-import { Button, ButtonLink } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button";
 import { Container, Skeleton } from "@/components/ui/feedback";
 import { Breadcrumbs } from "@/components/marketing/page-hero";
 import { ListingSearch } from "@/components/marketplace/listing-search";
-import { BRANDS } from "@/config/brands";
+import { QuickSearchBar } from "@/components/professionals/quick-search";
 
 export async function generateMetadata(): Promise<Metadata> {
   return seoMetadata("/auto-usate", {
@@ -31,27 +30,16 @@ export default function UsedCarsPage(props: PageProps<"/auto-usate">) {
           <p className="max-w-2xl text-lg text-white/70">
             Esplora le automobili disponibili, confronta caratteristiche e prezzi e contatta direttamente i venditori presenti su AutoGarage24.
           </p>
-          <form action="/auto-usate" method="get" className="grid gap-2 rounded-2xl bg-white p-3 text-ink shadow-lift sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]" role="search" aria-label="Cerca automobile">
-            <label className="sr-only" htmlFor="h-marca">Marca</label>
-            <select id="h-marca" name="marca" className="h-12 rounded-lg border border-line-strong px-3">
-              <option value="">Tutte le marche</option>
-              {BRANDS.map((b) => <option key={b.slug} value={b.slug}>{b.name}</option>)}
-            </select>
-            <label className="sr-only" htmlFor="h-modello">Modello</label>
-            <input id="h-modello" name="modello" placeholder="Modello" className="h-12 rounded-lg border border-line-strong px-3" />
-            <label className="sr-only" htmlFor="h-citta">Località</label>
-            <input id="h-citta" name="citta" placeholder="Località (es. Milano)" className="h-12 rounded-lg border border-line-strong px-3" />
-            <label className="sr-only" htmlFor="h-prezzo">Prezzo massimo</label>
-            <input id="h-prezzo" name="prezzo_max" inputMode="numeric" placeholder="Prezzo max (€)" className="h-12 rounded-lg border border-line-strong px-3" />
-            <Button type="submit" size="lg" icon={<Search className="size-5" aria-hidden />}>Cerca automobile</Button>
-          </form>
+          <Suspense fallback={<div className="h-32" />}>
+            <HeroSearch searchParams={props.searchParams} />
+          </Suspense>
           <div className="flex flex-wrap gap-3 text-sm text-white/70">
             <span>Vendi un&apos;auto?</span>
             <ButtonLink href="/dashboard/annunci/nuovo" size="sm" variant="outline" className="border-white/25 bg-transparent text-white hover:bg-white/10">Pubblica un annuncio</ButtonLink>
           </div>
         </Container>
       </section>
-      <div className="bg-mist">
+      <div id="cerca" className="scroll-mt-20 bg-mist">
         <Container className="py-10">
           <Suspense fallback={<SearchSkeleton />}>
             <Results searchParams={props.searchParams} />
@@ -74,5 +62,22 @@ function SearchSkeleton() {
         {Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-80 rounded-2xl" />)}
       </div>
     </div>
+  );
+}
+
+async function HeroSearch({ searchParams }: { searchParams: PageProps<"/auto-usate">["searchParams"] }) {
+  const sp = await searchParams;
+  const cerca = typeof sp.cerca === "string" ? sp.cerca : "";
+  return (
+    <QuickSearchBar
+      action="/auto-usate"
+      label="Cerca un'auto per marca, modello o luogo"
+      placeholder="Marca, modello, città o CAP"
+      defaultValue={cerca}
+      nearLabel="Auto vicino a me"
+      nearRadius={25}
+      tone="dark"
+      className="max-w-3xl"
+    />
   );
 }

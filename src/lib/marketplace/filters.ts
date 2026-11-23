@@ -27,6 +27,8 @@ export const PAGE_SIZE = 12;
 
 export type ListingFilters = {
   q?: string;
+  /** Testo libero della barra unica: marca, modello o luogo. */
+  cerca?: string;
   marca?: string;
   modello?: string;
   prezzo_min?: number;
@@ -79,6 +81,7 @@ export function parseListingFilters(params: Params): ListingFilters {
   const year = 2100; // limite tecnico: l'anno reale è verificato dal database
   return {
     q: cleanText(first(params.q)),
+    cerca: cleanText(first(params.cerca)),
     marca: findBrand(first(params.marca))?.slug ?? (first(params.marca)?.match(/^[a-z0-9-]{2,30}$/) ? first(params.marca) : undefined),
     modello: cleanText(first(params.modello)),
     prezzo_min: intParam(params.prezzo_min, 0, 10_000_000),
@@ -126,6 +129,7 @@ const euro = (n: number) => `${new Intl.NumberFormat("it-IT").format(n)} €`;
 /** Filtri attivi con il link per rimuoverli singolarmente. */
 export function activeFilterChips(base: string, f: ListingFilters): { key: string; label: string; href: string }[] {
   const chips: { key: keyof ListingFilters; label: string | undefined }[] = [
+    { key: "cerca", label: f.cerca && `“${f.cerca}”` },
     { key: "q", label: f.q && `“${f.q}”` },
     { key: "marca", label: f.marca && (findBrand(f.marca)?.name ?? f.marca) },
     { key: "modello", label: f.modello && `Modello: ${f.modello}` },

@@ -14,6 +14,7 @@ import { ListingCard } from "./listing-card";
 import { SortSelect } from "./sort-select";
 import { CompareBar } from "./compare";
 import { LocateButton } from "@/components/maps/locate-button";
+import { geocodeItaly } from "@/lib/geo/geocode";
 
 type Params = Record<string, string | string[] | undefined>;
 
@@ -21,23 +22,46 @@ type Params = Record<string, string | string[] | undefined>;
  * Ricerca completa del marketplace: filtri (modulo GET, URL condivisibili),
  * filtri attivi rimovibili, ordinamento, risultati reali e paginazione.
  */
+/**
+ * Testo della barra unica: prima come marca, modello o parola dell'annuncio;
+ * se non trova nulla, come luogo (indirizzo, città o CAP) con le auto più vicine.
+ */
+async function resolveListingSearch(f: ListingFilters) {
+  if (!f.cerca || f.lat !== undefined) return { effective: f, result: await searchListings(f), place: null as string | null, geoFail: false };
+  const text = f.cerca;
+  if (!/^\d{5}$/.test(text)) {
+    const byText: ListingFilters = { ...f, q: text };
+    const result = await searchListings(byText);
+    if (result.total > 0 || result.error) return { effective: byText, result, place: null, geoFail: false };
+  }
+  const g = await geocodeItaly(/^\d{5}$/.test(text) ? `${text} Italia` : text);
+  if (g) {
+    const near: ListingFilters = { ...f, lat: g.lat, lng: g.lng, raggio: f.raggio ?? 25 };
+    return { effective: near, result: await searchListings(near), place: g.label, geoFail: false };
+  }
+  return { effective: { ...f, q: text }, result: await searchListings({ ...f, q: text }), place: null, geoFail: true };
+}
+
 export async function ListingSearch({ base, params, neoMode = false }: { base: string; params: Params; neoMode?: boolean }) {
   const filters = parseListingFilters(params);
   if (neoMode && !params.neo) filters.neo = "compatibili_da_verificare";
-  const [{ items, total, error }, favs] = await Promise.all([searchListings(filters), favoriteListingIds()]);
+  const [{ effective, result: { items, total, error }, place, geoFail }, favs] = await Promise.all([resolveListingSearch(filters), favoriteListingIds()]);
   const chips = activeFilterChips(base, filters);
+  const advancedCount = chips.filter((c) => c.key !== "cerca").length;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[290px_1fr] lg:gap-8">
-      <details className="group rounded-2xl border border-line bg-white shadow-card lg:open:block" open>
-        <summary className="flex cursor-pointer items-center justify-between px-5 py-4 font-bold lg:hidden">
-          <span className="flex items-center gap-2"><SlidersHorizontal className="size-4" aria-hidden /> Filtri {chips.length > 0 && `(${chips.length})`}</span>
+    <div className="flex flex-col gap-6">
+      <details className="group rounded-2xl border border-line bg-white shadow-card" open={neoMode || undefined}>
+        <summary className="flex cursor-pointer items-center justify-between px-5 py-4 font-semibold">
+          <span className="flex items-center gap-2"><SlidersHorizontal className="size-4" aria-hidden /> Filtri avanzati {advancedCount > 0 ? `(${advancedCount})` : <span className="font-normal text-muted">(facoltativi: prezzo, anno, km, carburante…)</span>}</span>
           <span className="text-sm font-semibold text-orange-700 group-open:hidden">Mostra</span>
         </summary>
         <FilterForm base={base} filters={filters} neoMode={neoMode} />
       </details>
 
-      <section aria-labelledby="risultati-title" className="min-w-0">
+      <section id="risultati" aria-labelledby="risultati-title" className="min-w-0">
+        {place && <p className="mb-3 text-sm text-graphite">Automobili entro {effective.raggio} km da <strong>{place}</strong>.</p>}
+        {geoFail && <Alert tone="warning" className="mb-3">Non abbiamo trovato «{filters.cerca}» come luogo: mostriamo gli annunci che contengono questa parola. Per cercare vicino a un indirizzo scrivi via, numero e città.</Alert>}
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h2 id="risultati-title" className="text-lg font-bold" aria-live="polite">
             {error ? "Risultati non disponibili" : `${total} ${total === 1 ? "automobile trovata" : "automobili trovate"}`}
@@ -88,7 +112,8 @@ export async function ListingSearch({ base, params, neoMode = false }: { base: s
 function FilterForm({ base, filters: f, neoMode }: { base: string; filters: ListingFilters; neoMode: boolean }) {
   const opt = (map: Record<string, string>) => Object.entries(map).map(([v, l]) => <option key={v} value={v}>{l}</option>);
   return (
-    <form action={base} method="get" className="flex flex-col gap-4 border-t border-line p-5 lg:border-0">
+    <form action={`${base}#cerca`} method="get" className="grid gap-4 border-t border-line p-5 sm:grid-cols-2 lg:grid-cols-3">
+      {f.cerca && <input type="hidden" name="cerca" value={f.cerca} />}
       {neoMode && (
         <Field id="f-neo" label="Compatibilità neopatentati">
           <Select id="f-neo" name="neo" defaultValue={f.neo ?? ""}>
@@ -105,7 +130,7 @@ function FilterForm({ base, filters: f, neoMode }: { base: string; filters: List
         </Select>
       </Field>
       <Field id="f-modello" label="Modello"><Input id="f-modello" name="modello" defaultValue={f.modello} /></Field>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:col-span-2 lg:col-span-1">
         <Field id="f-pmin" label="Prezzo min (€)"><Input id="f-pmin" name="prezzo_min" inputMode="numeric" defaultValue={f.prezzo_min} /></Field>
         <Field id="f-pmax" label="Prezzo max (€)"><Input id="f-pmax" name="prezzo_max" inputMode="numeric" defaultValue={f.prezzo_max} /></Field>
         <Field id="f-amin" label="Anno da"><Input id="f-amin" name="anno_min" inputMode="numeric" defaultValue={f.anno_min} /></Field>
@@ -136,7 +161,7 @@ function FilterForm({ base, filters: f, neoMode }: { base: string; filters: List
       <LocateButton />
       <p className="text-xs text-muted">La distanza usa la tua posizione approssimata (~1 km), solo se la condividi, e la zona dell&apos;annuncio. Gli annunci senza posizione compaiono nella ricerca per città.</p>
       {f.ordina !== "recenti" && <input type="hidden" name="ordina" value={f.ordina} />}
-      <Button type="submit" className="w-full">Applica filtri</Button>
+      <Button type="submit" className="w-full self-end">Applica filtri</Button>
     </form>
   );
 }

@@ -49,7 +49,12 @@ export function RegisterForm() {
   if (state.status === "success") {
     return (
       <Alert tone="success" title="Controlla la tua email">
-        {state.message}
+        <p>{state.message}</p>
+        <p className="mt-2 text-sm">
+          L&apos;email non arriva? Controlla anche Spam e Promozioni. Se avevi già un account con questa email non ne inviamo una
+          nuova: <Link href="/accedi" className="font-semibold underline">accedi</Link> oppure{" "}
+          <Link href="/recupera-password" className="font-semibold underline">recupera la password</Link>.
+        </p>
       </Alert>
     );
   }

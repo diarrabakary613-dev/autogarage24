@@ -12,7 +12,7 @@ type Params = Record<string, string | string[] | undefined>;
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)?.trim() || undefined;
 
 export type ProFilters = {
-  q?: string; citta?: string; cap?: string; regione?: string; categoria?: string; marca?: string;
+  q?: string; cerca?: string; citta?: string; cap?: string; regione?: string; categoria?: string; marca?: string;
   modalita?: Enums<"work_mode">; verificati: boolean; lat?: number; lng?: number; raggio?: number;
   ordina: keyof typeof PRO_SORTS; pagina: number;
 };
@@ -24,6 +24,7 @@ export function parseProFilters(p: Params): ProFilters {
   const mode = one(p.modalita);
   return {
     q: cleanText(one(p.q)),
+    cerca: cleanText(one(p.cerca)),
     citta: cleanText(one(p.citta)),
     cap: one(p.cap)?.match(/^\d{5}$/) ? one(p.cap) : undefined,
     regione: cleanText(one(p.regione)),

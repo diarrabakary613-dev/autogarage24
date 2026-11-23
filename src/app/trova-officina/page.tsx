@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { seoMetadata } from "@/lib/seo/overrides";
 import { CalendarDays, FileText, MapPin, Star } from "lucide-react";
-import { FaqList, FeatureGrid, FormSection, LandingHero } from "@/components/marketing/landing";
-import { WorkshopSearchForm } from "@/components/partner/search-forms";
+import Link from "next/link";
+import { FaqList, FeatureGrid, LandingHero } from "@/components/marketing/landing";
+import { Section, SectionHeading } from "@/components/marketing/section";
+import { ProQuickSearch } from "@/components/professionals/quick-search";
 
 export async function generateMetadata(): Promise<Metadata> {
   return seoMetadata("/trova-officina", {
@@ -15,12 +17,19 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function FindWorkshopPage() {
   return (
     <>
-      <LandingHero eyebrow="Officine e meccanici" title="L'officina giusta, vicino a te." subtitle="Cerca per zona, servizio e marca. Descrivi il problema una volta sola, ricevi preventivi indicativi e scegli con calma."
+      <LandingHero eyebrow="Officine e meccanici" title="L'officina giusta, vicino a te." subtitle="Cerca per nome, indirizzo o vicino a te. Descrivi il problema una volta sola, ricevi preventivi indicativi e scegli con calma."
         crumbs={[{ name: "Trova un'officina", href: "/trova-officina" }]}
         ctas={[{ href: "#cerca", label: "Trova un'officina" }, { href: "/richiedi-intervento", label: "Richiedi un intervento" }]} />
-      <FormSection id="cerca" eyebrow="Ricerca" title="Cerca un'officina" description="Apre l'elenco delle officine pubblicate con i filtri scelti. La posizione esatta la condividi solo se vuoi, dalla pagina dei risultati.">
-        <WorkshopSearchForm />
-      </FormSection>
+      <Section id="cerca" tone="mist" labelledBy="cerca-t">
+        <div className="mx-auto flex max-w-3xl flex-col gap-5">
+          <SectionHeading id="cerca-t" eyebrow="Ricerca" title="Cerca un'officina" description="Scrivi il nome di un'officina oppure un indirizzo, una città o un CAP: ti mostriamo le officine più vicine sulla mappa. Oppure premi «Officine vicino a me»." className="mb-0" />
+          <ProQuickSearch base="/garages" kind="officina" />
+          <p className="text-sm text-muted">
+            Esempi: «Autofficina Rossi», «Via Padova 120 Milano», «Sesto San Giovanni», «20135». Cerchi un meccanico che viene da te?{" "}
+            <Link href="/meccanici#cerca" className="font-semibold text-orange-700 hover:underline">Cerca tra i meccanici</Link>.
+          </p>
+        </div>
+      </Section>
       <FeatureGrid id="come" eyebrow="Come funziona" title="Dalla ricerca all'appuntamento" columns={4} items={[
         { icon: MapPin, title: "Zona e servizio", text: "Elenco e mappa delle officine pubblicate, con servizi e orari dichiarati." },
         { icon: FileText, title: "Una richiesta, più officine", text: "Descrivi il problema e inviala alle officine compatibili che scegli tu." },

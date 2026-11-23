@@ -12,6 +12,7 @@ import { AUDIENCES, CHANNELS, MARKETING_STATUSES, CAMPAIGN_AUDIENCES, CAMPAIGN_T
 import { formatDate } from "@/lib/utils";
 import { formatPrice } from "@/lib/format";
 import type { Tables } from "@/lib/supabase/database.types";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Campagne marketing", robots: { index: false } };
 const LANDINGS = ["/milano", "/prima-auto", "/trova-officina", "/trova-ricambi", "/diventa-partner", "/diventa-officina-partner", "/diventa-concessionario-partner", "/partner"];
@@ -68,7 +69,7 @@ async function Content({ searchParams }: { searchParams: Promise<Record<string, 
 function CampaignForm({ c }: { c?: Tables<"marketing_campaigns"> }) {
   return (
     <ActionForm action={saveCampaign} submitLabel={c ? "Salva" : "Crea campagna"} hidden={{ id: c?.id }}>
-      {(s) => (<div className="grid gap-3">
+      {((s: FormState) => (<div className="grid gap-3">
         <Field id="mc-n" label="Nome" error={s.fieldErrors?.name}><Input id="mc-n" name="name" defaultValue={c?.name} /></Field>
         <div className="grid grid-cols-2 gap-3">
           <Field id="mc-a" label="Pubblico"><Select id="mc-a" name="audience" defaultValue={c?.audience ?? "neopatentati"}>{Object.entries(CAMPAIGN_AUDIENCES).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</Select></Field>
@@ -89,7 +90,7 @@ function CampaignForm({ c }: { c?: Tables<"marketing_campaigns"> }) {
           <Field id="mc-pd" label="Data reale di pubblicazione" optional hint="Solo se lo stato è «pubblicato»."><Input id="mc-pd" name="published_on" type="date" defaultValue={c?.published_at?.slice(0, 10) ?? ""} /></Field>
         </div>
         <Field id="mc-no" label="Note" optional><Textarea id="mc-no" name="notes" rows={2} defaultValue={c?.notes ?? ""} /></Field>
-      </div>)}
+      </div>))(initialFormState)}
     </ActionForm>
   );
 }

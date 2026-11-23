@@ -3,6 +3,7 @@ import { Field, Input, Select, Textarea } from "@/components/ui/form";
 import { addFieldVisit, saveFieldContact } from "@/lib/actions/field";
 import { BUSINESS_TYPES, CONTACT_SOURCES, CRM_STATUSES, INTERACTION_KINDS, INTEREST_LEVELS } from "@/lib/crm";
 import type { Tables } from "@/lib/supabase/database.types";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 type Back = "/admin/acquisizione" | "/admin/field-manager";
 const opts = (o: Record<string, string>) => Object.entries(o).map(([k, l]) => <option key={k} value={k}>{l}</option>);
@@ -12,7 +13,7 @@ export function CrmContactForm({ c, back, categories = [] }: { c?: Tables<"field
   const p = c ? `fc-${c.id.slice(0, 6)}` : "fc-new";
   return (
     <ActionForm action={saveFieldContact} submitLabel={c ? "Salva" : "Crea contatto"} hidden={{ id: c?.id, return_to: back }}>
-      {(s) => (<div className="grid gap-3">
+      {((s: FormState) => (<div className="grid gap-3">
         <Field id={`${p}-n`} label="Nome attività" error={s.fieldErrors?.business_name}><Input id={`${p}-n`} name="business_name" defaultValue={c?.business_name} /></Field>
         <div className="grid grid-cols-2 gap-3">
           <Field id={`${p}-t`} label="Tipologia"><Select id={`${p}-t`} name="business_type" defaultValue={c?.business_type ?? "officina"}>{opts(BUSINESS_TYPES)}</Select></Field>
@@ -39,7 +40,7 @@ export function CrmContactForm({ c, back, categories = [] }: { c?: Tables<"field
         <Field id={`${p}-lr`} label="Motivo «non interessato»" optional><Input id={`${p}-lr`} name="lost_reason" defaultValue={c?.lost_reason ?? ""} /></Field>
         <Field id={`${p}-l`} label="Profilo su AutoGarage24 (indirizzo o slug)" optional hint="Collega il contatto al professionista registrato."><Input id={`${p}-l`} name="profile_slug" /></Field>
         <Field id={`${p}-no`} label="Note" optional><Textarea id={`${p}-no`} name="notes" rows={3} defaultValue={c?.notes ?? ""} /></Field>
-      </div>)}
+      </div>))(initialFormState)}
     </ActionForm>
   );
 }
@@ -48,7 +49,7 @@ export function CrmContactForm({ c, back, categories = [] }: { c?: Tables<"field
 export function CrmInteractionForm({ contactId, back }: { contactId: string; back: Back }) {
   return (
     <ActionForm action={addFieldVisit} submitLabel="Registra" hidden={{ contact_id: contactId, return_to: back }} resetOnSuccess>
-      {(s) => (<div className="grid gap-3">
+      {((s: FormState) => (<div className="grid gap-3">
         <div className="grid grid-cols-2 gap-3">
           <Field id="v-k" label="Tipo"><Select id="v-k" name="kind">{opts(INTERACTION_KINDS)}</Select></Field>
           <Field id="v-d" label="Data"><Input id="v-d" name="visited_on" type="date" /></Field>
@@ -66,7 +67,7 @@ export function CrmInteractionForm({ contactId, back }: { contactId: string; bac
           <Field id="v-s" label="Nuovo stato" optional><Select id="v-s" name="status" defaultValue=""><option value="">Invariato</option>{opts(CRM_STATUSES)}</Select></Field>
           <Field id="v-f" label="Data prossima azione" optional><Input id="v-f" name="next_followup_on" type="date" /></Field>
         </div>
-      </div>)}
+      </div>))(initialFormState)}
     </ActionForm>
   );
 }

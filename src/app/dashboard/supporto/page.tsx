@@ -10,6 +10,7 @@ import { requireUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { openTicket } from "@/lib/actions/messaging";
 import { formatDate } from "@/lib/utils";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Assistenza clienti", robots: { index: false } };
 const TICKET_CATEGORIES: Record<string, string> = { account: "Account", annunci: "Annunci", acquisto_vendita: "Acquisto e vendita", officine: "Officine", meccanici: "Meccanici", ricambi: "Ricambi", funzionamento: "Pagina e funzionamento", privacy: "Privacy", segnalazioni: "Segnalazioni", reclamo: "Reclamo", partner: "Supporto partner", altro: "Altro" };
@@ -47,12 +48,12 @@ async function Tickets() {
       <Card className="p-5 lg:sticky lg:top-24 lg:self-start">
         <h2 className="mb-3 font-bold">Nuova richiesta</h2>
         <ActionForm action={openTicket} submitLabel="Invia richiesta" resetOnSuccess>
-          {(s) => (<>
+          {((s: FormState) => (<>
             <Field id="tk-c" label="Categoria" error={s.fieldErrors?.category}><Select id="tk-c" name="category" defaultValue="">{[<option key="" value="" disabled>Scegli…</option>, ...Object.entries(TICKET_CATEGORIES).map(([k, l]) => <option key={k} value={k}>{l}</option>)]}</Select></Field>
             <Field id="tk-s" label="Oggetto" error={s.fieldErrors?.subject}><Input id="tk-s" name="subject" maxLength={160} /></Field>
             <Field id="tk-m" label="Descrivi il problema" error={s.fieldErrors?.message} hint="Dopo l'invio potrai allegare immagini o documenti nella conversazione."><Textarea id="tk-m" name="message" rows={5} maxLength={4000} /></Field>
             {s.status === "success" && s.values?.conversation_id && <Link className="text-sm font-semibold text-orange-700 underline" href={`/dashboard/messaggi/${s.values.conversation_id}`}>Apri la conversazione</Link>}
-          </>)}
+          </>))(initialFormState)}
         </ActionForm>
       </Card>
     </div>

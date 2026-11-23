@@ -5,6 +5,7 @@ import { TabLinks } from "@/components/ui/misc";
 import { saveMarketingItem, setMarketingStatus } from "@/lib/actions/marketing";
 import { AUDIENCES, CHANNELS, FORMATS, MARKETING_STATUSES, OBJECTIVES, SERVICES, TONES } from "@/lib/marketing/brief";
 import type { Tables } from "@/lib/supabase/database.types";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const KINDS = { creativita: "Creatività", contenuto_social: "Contenuto social", video: "Video", materiale: "Materiale pubblicitario", landing: "Landing page", brief: "Brief" } as const;
 export const ASSET_ORIGINS = { higgsfield: "Generato con Higgsfield", fotografia_propria: "Fotografia propria", licenza_acquistata: "Licenza acquistata", creato_internamente: "Creato internamente", altro: "Altro" } as const;
@@ -49,7 +50,7 @@ export function MarketingItemForm({ item, campaigns, defaults = {} }: { item?: T
   const planned = toLocal(item?.planned_at ?? null);
   return (
     <ActionForm action={saveMarketingItem} submitLabel={item ? "Salva" : "Crea"} hidden={{ id: item?.id, variants: item ? JSON.stringify(item.variants) : (defaults.variants ?? "[]") }}>
-      {(s) => (<div className="grid gap-3">
+      {((s: FormState) => (<div className="grid gap-3">
         <div className="grid gap-3 sm:grid-cols-2">
           <Field id="mi-ti" label="Titolo" error={s.fieldErrors?.title}><Input id="mi-ti" name="title" defaultValue={v("title")} /></Field>
           <Field id="mi-ki" label="Tipo"><Select id="mi-ki" name="kind" defaultValue={v("kind") || "creativita"}>{opts(KINDS)}</Select></Field>
@@ -82,7 +83,7 @@ export function MarketingItemForm({ item, campaigns, defaults = {} }: { item?: T
           <Field id="mi-pu" label="Link al contenuto pubblicato" optional><Input id="mi-pu" name="published_url" type="url" defaultValue={v("published_url")} /></Field>
         </fieldset>
         <Field id="mi-no" label="Note" optional><Textarea id="mi-no" name="notes" rows={2} defaultValue={v("notes")} /></Field>
-      </div>)}
+      </div>))(initialFormState)}
     </ActionForm>
   );
 }

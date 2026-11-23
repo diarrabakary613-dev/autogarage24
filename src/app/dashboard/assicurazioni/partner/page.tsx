@@ -10,6 +10,7 @@ import { partnerUpdateRequest, submitInsuranceQuote } from "@/lib/actions/insura
 import { COVERAGES, RP_STATUS } from "@/lib/insurance/labels";
 import { nowMs } from "@/lib/bookings/time";
 import { formatDate, formatDateTime } from "@/lib/utils";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Richieste ricevute — partner assicurativo", robots: { index: false } };
 
@@ -53,7 +54,7 @@ async function Content() {
               </ActionForm>
               <details className="rounded-xl border border-line p-3"><summary className="cursor-pointer font-semibold">Invia un preventivo</summary>
                 <ActionForm action={submitInsuranceQuote} submitLabel="Invia il preventivo" hidden={{ id: rp.id }} className="mt-3">
-                  {(s) => (
+                  {((s: FormState) => (
                     <div className="grid gap-2 sm:grid-cols-2">
                       <Field id={`pn-${rp.id}`} label="Prodotto" error={s.fieldErrors?.product_name}><Input id={`pn-${rp.id}`} name="product_name" required maxLength={160} /></Field>
                       <Field id={`pr-${rp.id}`} label="Premio annuo (€)" error={s.fieldErrors?.premium}><Input id={`pr-${rp.id}`} name="premium" type="number" step="0.01" min={10} required /></Field>
@@ -66,7 +67,7 @@ async function Content() {
                       <Field id={`dc-${rp.id}`} label="Link al set informativo (https)" error={s.fieldErrors?.documents_url} className="sm:col-span-2"><Input id={`dc-${rp.id}`} name="documents_url" type="url" required /></Field>
                       <Field id={`bu-${rp.id}`} label="Link per proseguire sul tuo sito (https)" optional error={s.fieldErrors?.purchase_url} className="sm:col-span-2"><Input id={`bu-${rp.id}`} name="purchase_url" type="url" /></Field>
                     </div>
-                  )}
+                  ))(initialFormState)}
                 </ActionForm>
               </details>
             </>

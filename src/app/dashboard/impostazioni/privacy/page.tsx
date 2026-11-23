@@ -10,6 +10,7 @@ import { requireUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { requestAccountDeletion } from "@/lib/actions/privacy";
 import { formatDate } from "@/lib/utils";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Privacy e dati personali", robots: { index: false } };
 
@@ -47,10 +48,10 @@ async function Content() {
           <>
             <p className="text-sm text-graphite">La richiesta viene gestita dal nostro team entro 30 giorni. Cancelleremo profilo, annunci, garage, documenti e preferenze. Alcuni dati possono essere conservati per il tempo previsto dalla legge (ad esempio registri di sicurezza, segnalazioni e contestazioni in corso) e poi eliminati. I messaggi inviati ad altri utenti possono restare visibili ai destinatari in forma anonima.</p>
             <ActionForm action={requestAccountDeletion} submitLabel="Chiedi la cancellazione" variant="danger" confirm="Confermi la richiesta di cancellazione?">
-              {(s) => (<>
+              {((s: FormState) => (<>
                 <Field id="del-r" label="Motivo" optional><Textarea id="del-r" name="reason" rows={2} maxLength={1000} /></Field>
                 <Checkbox id="del-c" name="confirm" label="Ho letto le informazioni sulla cancellazione e sulla conservazione dei dati." error={s.fieldErrors?.confirm} />
-              </>)}
+              </>))(initialFormState)}
             </ActionForm>
           </>
         )}

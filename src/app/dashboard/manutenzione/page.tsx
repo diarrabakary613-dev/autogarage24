@@ -14,6 +14,7 @@ import { reminderAction, saveReminder } from "@/lib/actions/garage";
 import { MAINTENANCE_LABELS, RECORD_SOURCE_LABELS, REMINDER_CATEGORY_LABELS, REMINDER_STATUS_LABELS } from "@/lib/labels";
 import { formatKm, formatPrice } from "@/lib/format";
 import { formatDate } from "@/lib/utils";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Manutenzione", robots: { index: false } };
 
@@ -104,7 +105,7 @@ async function Overview() {
         <Card className="p-5">
           <h2 className="mb-3 font-bold">Nuovo promemoria</h2>
           <ActionForm action={saveReminder} submitLabel="Salva promemoria" resetOnSuccess>
-            {(s) => {
+            {((s: FormState) => {
               const fe = s.fieldErrors ?? {};
               return (<>
                 <Field id="rm-v" label="Automobile" error={fe.user_vehicle_id}><Select id="rm-v" name="user_vehicle_id">{vs.map((v) => <option key={v.id} value={v.id}>{v.make} {v.model}</option>)}</Select></Field>
@@ -120,7 +121,7 @@ async function Overview() {
                 <Field id="rm-de" label="Note" optional><Textarea id="rm-de" name="description" rows={2} /></Field>
                 <Checkbox id="rm-e" name="notify_email" label="Avvisami anche via email (se configurata)" />
               </>);
-            }}
+            })(initialFormState)}
           </ActionForm>
           <p className="mt-3 flex gap-2 text-xs text-muted"><AlertTriangle className="size-4 shrink-0" aria-hidden />Gli intervalli di manutenzione dipendono dal costruttore e dall&apos;uso dell&apos;auto: inserisci le scadenze indicate nel libretto di manutenzione o dal tuo meccanico.</p>
         </Card>

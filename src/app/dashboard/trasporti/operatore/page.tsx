@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 import { saveTransportOperator } from "@/lib/actions/transport";
 import { REGIONS } from "@/lib/geo/regions";
 import { OPERATOR_STATUS, TRANSPORT_SERVICES } from "@/lib/services/labels";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Profilo trasportatore", robots: { index: false } };
 
@@ -47,7 +48,7 @@ async function Content() {
       )}
       <Card className="p-5">
         <ActionForm action={saveTransportOperator} submitLabel={op ? "Salva" : "Invia per la verifica"} hidden={{ profile_id: p.id }}>
-          {(s) => (
+          {((s: FormState) => (
             <>
               <fieldset><legend className="mb-1 text-sm font-semibold">Servizi</legend>
                 <div className="grid gap-2 sm:grid-cols-2">{Object.entries(TRANSPORT_SERVICES).filter(([k]) => k !== "indifferente").map(([k, l]) => <Checkbox key={k} id={`s-${k}`} name="services" value={k} label={l} defaultChecked={op?.services.includes(k)} />)}</div></fieldset>
@@ -59,7 +60,7 @@ async function Content() {
               <Field id="pr" label="Note su prezzi e capacità" optional><Textarea id="pr" name="price_notes" rows={2} maxLength={1000} defaultValue={op?.price_notes ?? ""} placeholder="Es. bisarca 8 posti, carro singolo" /></Field>
               <p className="text-xs text-muted">Per l&apos;attivazione lo staff verifica visura camerale e, se applicabile, iscrizione all&apos;Albo degli autotrasportatori e licenze: tienili pronti.</p>
             </>
-          )}
+          ))(initialFormState)}
         </ActionForm>
       </Card>
     </div>

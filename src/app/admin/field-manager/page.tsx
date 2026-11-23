@@ -14,6 +14,7 @@ import { LISTING_STATUS_LABELS } from "@/lib/labels";
 import { formatDate } from "@/lib/utils";
 import { BUSINESS_TYPES, CRM_STATUSES, statusTone } from "@/lib/crm";
 import { CrmContactForm, CrmInteractionForm } from "@/components/admin/crm-forms";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Field Manager", robots: { index: false } };
 const TYPES: Record<string, string> = BUSINESS_TYPES;
@@ -105,14 +106,14 @@ async function ContactDetail({ id, userId, supabase }: { id: string; userId: str
                       <p className={`mt-1 text-sm ${ok ? "text-success" : "text-danger"}`}>{ok ? `Autorizzazione del venditore registrata (${auths.filter((a) => !a.revoked_at).map((a) => `${a.authorized_by_name}, ${formatDate(a.authorized_on)}`).join("; ")})` : "Manca l'autorizzazione del venditore: l'annuncio non può essere pubblicato."}</p>
                       <details className="mt-2"><summary className="cursor-pointer text-sm font-semibold text-orange-700">Registra autorizzazione</summary>
                         <ActionForm action={saveSellerAuthorization} submitLabel="Salva autorizzazione" size="sm" hidden={{ listing_id: l.id, contact_id: c.id }} className="mt-3">
-                          {(s) => (<div className="grid gap-2 sm:grid-cols-2">
+                          {((s: FormState) => (<div className="grid gap-2 sm:grid-cols-2">
                             <Field id={`ab-${l.id}`} label="Autorizzato da" error={s.fieldErrors?.authorized_by_name}><Input id={`ab-${l.id}`} name="authorized_by_name" /></Field>
                             <Field id={`ao-${l.id}`} label="Data"><Input id={`ao-${l.id}`} name="authorized_on" type="date" /></Field>
                             <Field id={`am-${l.id}`} label="Modalità" error={s.fieldErrors?.method}><Select id={`am-${l.id}`} name="method"><option value="modulo_firmato">Modulo firmato</option><option value="email">Email</option><option value="messaggio_scritto">Messaggio scritto</option><option value="altro_documentato">Altro documentato</option></Select></Field>
                             <Field id={`as-${l.id}`} label="Cosa è stato autorizzato" error={s.fieldErrors?.scope}><Input id={`as-${l.id}`} name="scope" placeholder="Pubblicazione annuncio, foto e prezzo" /></Field>
                             <div className="flex flex-wrap gap-3 sm:col-span-2"><Checkbox id={`la-${l.id}`} name="listing_authorized" label="Pubblicazione" /><Checkbox id={`pa-${l.id}`} name="photos_authorized" label="Fotografie" /><Checkbox id={`pc-${l.id}`} name="price_confirmed" label="Prezzo confermato" /><Checkbox id={`av-${l.id}`} name="availability_confirmed" label="Disponibilità confermata" /></div>
                             <div className="sm:col-span-2"><FileUploader bucket="field-documents" folder={userId} kind="document" label="Allega il documento (privato)" name="document_path" /></div>
-                          </div>)}
+                          </div>))(initialFormState)}
                         </ActionForm>
                       </details>
                       <div className="mt-3 text-sm">
@@ -120,7 +121,7 @@ async function ContactDetail({ id, userId, supabase }: { id: string; userId: str
                         {insp.map((i) => <p key={i.id} className="flex flex-wrap items-center gap-2">{formatDate(i.inspected_on)} · {i.inspector_name} · {i.status}{i.status === "bozza" && <ActionForm action={publishInspection} submitLabel="Pubblica" size="sm" variant="outline" hidden={{ id: i.id }} confirm="Pubblicare l'ispezione sulla scheda?" />}</p>)}
                         <details className="mt-2"><summary className="cursor-pointer font-semibold text-orange-700">Nuova ispezione</summary>
                           <ActionForm action={saveInspection} submitLabel="Salva ispezione (bozza)" size="sm" hidden={{ listing_id: l.id }} className="mt-3">
-                            {(s) => (<div className="grid gap-2">
+                            {((s: FormState) => (<div className="grid gap-2">
                               <div className="grid gap-2 sm:grid-cols-3">
                                 <Field id={`in-${l.id}`} label="Eseguita da" error={s.fieldErrors?.inspector_name}><Input id={`in-${l.id}`} name="inspector_name" /></Field>
                                 <Field id={`id-${l.id}`} label="Data"><Input id={`id-${l.id}`} name="inspected_on" type="date" /></Field>
@@ -135,7 +136,7 @@ async function ContactDetail({ id, userId, supabase }: { id: string; userId: str
                               ))}
                               <Field id={`io-${l.id}`} label="Osservazioni" optional><Textarea id={`io-${l.id}`} name="observations" rows={2} /></Field>
                               <Field id={`ir-${l.id}`} label="Riparazioni consigliate" optional><Textarea id={`ir-${l.id}`} name="recommended_repairs" rows={2} /></Field>
-                            </div>)}
+                            </div>))(initialFormState)}
                           </ActionForm>
                         </details>
                       </div>

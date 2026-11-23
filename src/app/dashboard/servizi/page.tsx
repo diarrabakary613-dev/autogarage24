@@ -11,6 +11,7 @@ import { deleteService, saveService } from "@/lib/actions/professional";
 import { formatPrice } from "@/lib/format";
 import { PRICE_TYPE_LABELS, WORK_MODE_LABELS } from "@/lib/labels";
 import type { Tables } from "@/lib/supabase/database.types";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Servizi", robots: { index: false } };
 
@@ -63,7 +64,7 @@ function ServiceForm({ profileId, cats, s }: { profileId: string; cats: { slug: 
   const k = s?.id ?? "new";
   return (
     <ActionForm action={saveService} submitLabel={s ? "Salva" : "Aggiungi"} hidden={{ profile_id: profileId, service_id: s?.id }} resetOnSuccess={!s}>
-      {(st) => (
+      {((st: FormState) => (
         <div className="grid gap-3">
           <Field id={`sv-n-${k}`} label="Nome" error={st.fieldErrors?.name}><Input id={`sv-n-${k}`} name="name" defaultValue={s?.name} placeholder="Es. Tagliando completo" /></Field>
           <Field id={`sv-c-${k}`} label="Categoria" optional><Select id={`sv-c-${k}`} name="category" defaultValue={s?.category ?? ""}><option value="">—</option>{cats.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}</Select></Field>
@@ -77,7 +78,7 @@ function ServiceForm({ profileId, cats, s }: { profileId: string; cats: { slug: 
           <Field id={`sv-wm-${k}`} label="Modalità" optional><Select id={`sv-wm-${k}`} name="work_mode" defaultValue={s?.work_mode ?? ""}><option value="">—</option>{Object.entries(WORK_MODE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</Select></Field>
           <Checkbox id={`sv-a-${k}`} name="active" value="on" defaultChecked={s?.active ?? true} label="Servizio attivo" />
         </div>
-      )}
+      ))(initialFormState)}
     </ActionForm>
   );
 }

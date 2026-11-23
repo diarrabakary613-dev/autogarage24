@@ -15,6 +15,7 @@ import { BODY_LABELS, FUEL_LABELS, LISTING_STATUS_LABELS, NEO_LABELS, PART_CONDI
 import { publicFileUrl } from "@/lib/storage";
 import { formatDate } from "@/lib/utils";
 import type { Enums, Tables } from "@/lib/supabase/database.types";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Moderazione", robots: { index: false } };
 
@@ -121,27 +122,27 @@ async function Listings({ supabase, status, f }: { supabase: SB; status: Enums<"
                     {l.status === "pubblicato" && <Link href={`/auto/${l.slug}`} className="text-sm font-semibold text-orange-700 hover:underline">Apri l&apos;annuncio pubblico</Link>}
                     <details><summary className="cursor-pointer text-sm font-semibold text-orange-700">Modifica testo e prezzo</summary>
                       <ActionForm action={adminEditListing} submitLabel="Salva modifica" size="sm" hidden={{ id: l.id }} className="mt-2">
-                        {(s) => (<div className="grid gap-2">
+                        {((s: FormState) => (<div className="grid gap-2">
                           <Field id={`et-${l.id}`} label="Titolo"><Input id={`et-${l.id}`} name="title" defaultValue={l.title} /></Field>
                           <Field id={`ed-${l.id}`} label="Descrizione" optional><Textarea id={`ed-${l.id}`} name="description" rows={4} defaultValue={l.description ?? ""} /></Field>
                           <Field id={`ep-${l.id}`} label="Prezzo (€)" optional error={s.fieldErrors?.price}><Input id={`ep-${l.id}`} name="price" inputMode="decimal" defaultValue={l.price_cents ? String(l.price_cents / 100) : ""} /></Field>
                           <Field id={`er-${l.id}`} label="Motivazione (inviata al venditore)" error={s.fieldErrors?.reason}><Input id={`er-${l.id}`} name="reason" /></Field>
-                        </div>)}
+                        </div>))(initialFormState)}
                       </ActionForm>
                     </details>
                     <details><summary className="cursor-pointer text-sm font-semibold text-orange-700">Verifica documentata (badge sulla scheda)</summary>
                       <ActionForm action={adminVerifyListing} submitLabel="Registra" size="sm" hidden={{ listing_id: l.id }} className="mt-2">
-                        {(s) => (<div className="grid gap-2">
+                        {((s: FormState) => (<div className="grid gap-2">
                           <Field id={`vk-${l.id}`} label="Tipo di verifica"><Select id={`vk-${l.id}`} name="kind"><option value="documentazione">Documentazione (libretto, CdP)</option><option value="identita_venditore">Identità del venditore</option><option value="dati_tecnici">Dati tecnici (telaio, km)</option></Select></Field>
                           <Field id={`ve-${l.id}`} label="Documenti esaminati / motivo" error={s.fieldErrors?.evidence} hint="Resta nel registro: es. «Carta di circolazione visionata il 19/11, telaio corrispondente»."><Input id={`ve-${l.id}`} name="evidence" /></Field>
                           <Checkbox id={`vr-${l.id}`} name="revoke" label="Revoca una verifica esistente" />
-                        </div>)}
+                        </div>))(initialFormState)}
                       </ActionForm>
                     </details>
                     {["rifiutato", "sospeso", "scaduto", "bozza"].includes(l.status) && (
                       <details><summary className="cursor-pointer text-sm font-semibold text-danger">Elimina definitivamente</summary>
                         <ActionForm action={adminDeleteListing} submitLabel="Elimina" variant="danger" size="sm" hidden={{ id: l.id }} confirm="L'eliminazione è irreversibile. Confermi?" className="mt-2">
-                          {(s) => <Field id={`dr-${l.id}`} label="Motivazione (min. 10 caratteri, resta nel registro)" error={s.fieldErrors?.reason}><Input id={`dr-${l.id}`} name="reason" /></Field>}
+                          {((s: FormState) => <Field id={`dr-${l.id}`} label="Motivazione (min. 10 caratteri, resta nel registro)" error={s.fieldErrors?.reason}><Input id={`dr-${l.id}`} name="reason" /></Field>)(initialFormState)}
                         </ActionForm>
                       </details>
                     )}

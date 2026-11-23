@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
@@ -160,12 +161,12 @@ async function Detail({ params }: { params: PageProps<"/dashboard/richieste/[id]
                       {["in_attesa", "confermato"].includes(a.status) && (
                         <details className="w-full"><summary className="cursor-pointer text-sm font-semibold text-orange-700">Cambia data</summary>
                           <ActionForm action={rescheduleAppointment} submitLabel="Proponi la nuova data" size="sm" hidden={{ appointment_id: a.id, request_id: id }} className="mt-2">
-                            {(st) => (<div className="grid gap-2 sm:grid-cols-4">
+                            {((st: FormState) => (<div className="grid gap-2 sm:grid-cols-4">
                               <Field id={`rs-d-${a.id}`} label="Nuova data" error={st.fieldErrors?.date}><Input id={`rs-d-${a.id}`} name="date" type="date" /></Field>
                               <Field id={`rs-s-${a.id}`} label="Fascia"><Select id={`rs-s-${a.id}`} name="slot" defaultValue="qualsiasi">{Object.entries(SLOT_LABELS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</Select></Field>
                               <Field id={`rs-t-${a.id}`} label="Orario" optional><Input id={`rs-t-${a.id}`} name="time_text" placeholder="es. 9:30" /></Field>
                               <Field id={`rs-n-${a.id}`} label="Motivo" optional><Input id={`rs-n-${a.id}`} name="note" /></Field>
-                            </div>)}
+                            </div>))(initialFormState)}
                           </ActionForm>
                         </details>
                       )}
@@ -199,7 +200,7 @@ async function Detail({ params }: { params: PageProps<"/dashboard/richieste/[id]
             <Card className="p-5">
               <h2 className="mb-3 font-bold">Invia un preventivo</h2>
               <ActionForm action={sendQuote} submitLabel="Invia preventivo" hidden={{ request_id: id }} resetOnSuccess>
-                {(s) => (
+                {((s: FormState) => (
                   <div className="grid gap-3 sm:grid-cols-2">
                     {repairKind ? (
                       <>
@@ -223,7 +224,7 @@ async function Detail({ params }: { params: PageProps<"/dashboard/richieste/[id]
                     {repairKind && <div className="flex items-end"><Checkbox id="q-i" name="requires_inspection" label="Serve un controllo in officina per il prezzo definitivo" /></div>}
                     <Field id="q-c" label="Condizioni" optional className="sm:col-span-2"><Textarea id="q-c" name="conditions" rows={2} /></Field>
                   </div>
-                )}
+                ))(initialFormState)}
               </ActionForm>
             </Card>
           )}
@@ -264,7 +265,7 @@ async function Detail({ params }: { params: PageProps<"/dashboard/richieste/[id]
               <h2 className="mb-1 font-bold">Proponi il rapporto di lavoro</h2>
               <p className="mb-3 text-sm text-muted">Il cliente lo verificherà prima che entri nello storico della sua automobile, con l&apos;indicazione &quot;inserito da professionista&quot;.</p>
               <ActionForm action={proposeWorkReport} submitLabel="Invia al cliente" hidden={{ request_id: id }}>
-                {(s) => (
+                {((s: FormState) => (
                   <div className="grid gap-3 sm:grid-cols-2">
                     <Field id="w-d" label="Data" error={s.fieldErrors?.performed_on}><Input id="w-d" name="performed_on" type="date" max={new Date().toISOString().slice(0, 10)} /></Field>
                     <Field id="w-c" label="Categoria" error={s.fieldErrors?.category}><Select id="w-c" name="category" defaultValue="">{[<option key="" value="" disabled>Scegli…</option>, ...Object.entries(MAINTENANCE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)]}</Select></Field>
@@ -274,7 +275,7 @@ async function Detail({ params }: { params: PageProps<"/dashboard/richieste/[id]
                     <Field id="w-p" label="Ricambi utilizzati" optional><Input id="w-p" name="parts_used" /></Field>
                     <Field id="w-co" label="Costo (€)" optional><Input id="w-co" name="cost" inputMode="decimal" /></Field>
                   </div>
-                )}
+                ))(initialFormState)}
               </ActionForm>
             </Card>
           )}
@@ -296,7 +297,7 @@ async function Detail({ params }: { params: PageProps<"/dashboard/richieste/[id]
                 <p className="text-sm">Hai lasciato {review.data.rating}/5: “{review.data.comment}” {review.data.status !== "pubblicata" && <Badge tone="neutral">{review.data.status}</Badge>}</p>
               ) : (
                 <ActionForm action={createReview} submitLabel="Pubblica recensione" hidden={{ request_id: id }}>
-                  {(s) => (
+                  {((s: FormState) => (
                     <>
                       <fieldset>
                         <legend className="mb-1.5 text-sm font-semibold">Valutazione</legend>
@@ -315,7 +316,7 @@ async function Detail({ params }: { params: PageProps<"/dashboard/richieste/[id]
                       <Field id="rv-s" label="Servizio ricevuto" optional><Input id="rv-s" name="service_label" defaultValue={(r.service as { name: string } | null)?.name ?? ""} maxLength={120} /></Field>
                       <Field id="rv-c" label="Commento" error={s.fieldErrors?.comment}><Textarea id="rv-c" name="comment" rows={4} maxLength={3000} /></Field>
                     </>
-                  )}
+                  ))(initialFormState)}
                 </ActionForm>
               )}
             </Card>

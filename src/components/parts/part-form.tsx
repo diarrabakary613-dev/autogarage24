@@ -3,6 +3,7 @@ import { Checkbox, Field, Input, Select, Textarea } from "@/components/ui/form";
 import { savePart } from "@/lib/actions/parts";
 import { PART_CONDITION_LABELS } from "@/lib/labels";
 import type { Tables } from "@/lib/supabase/database.types";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 /** Dati principali del ricambio (bozza salvabile in qualsiasi momento). */
 export function PartForm({ part, categories, defaults }: { part?: Tables<"part_listings">; categories: { id: string; name: string; parent_id: string | null }[]; defaults?: { city?: string | null; province?: string | null; postal_code?: string | null } }) {
@@ -10,7 +11,7 @@ export function PartForm({ part, categories, defaults }: { part?: Tables<"part_l
   const d = part;
   return (
     <ActionForm action={savePart} submitLabel={d ? "Salva modifiche" : "Salva bozza e continua"} pendingLabel="Salvataggio…" hidden={{ part_id: d?.id }}>
-      {(s) => {
+      {((s: FormState) => {
         const fe = s.fieldErrors ?? {};
         return (
           <div className="grid gap-4 sm:grid-cols-2">
@@ -36,7 +37,7 @@ export function PartForm({ part, categories, defaults }: { part?: Tables<"part_l
             </div>
           </div>
         );
-      }}
+      })(initialFormState)}
     </ActionForm>
   );
 }

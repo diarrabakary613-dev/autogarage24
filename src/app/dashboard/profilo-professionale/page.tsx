@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -89,7 +90,7 @@ async function Editor({ searchParams }: { searchParams: PageProps<"/dashboard/pr
       {(section === "dati" || section === "orari") && (
         <Card className="p-6">
           <ActionForm action={saveProfessionalProfile} submitLabel="Salva" pendingLabel="Salvataggio…" hidden={{ profile_id: p.id }}>
-            {(s) => {
+            {((s: FormState) => {
               const fe = s.fieldErrors ?? {};
               return (
                 <>
@@ -137,7 +138,7 @@ async function Editor({ searchParams }: { searchParams: PageProps<"/dashboard/pr
                   </div>
                 </>
               );
-            }}
+            })(initialFormState)}
           </ActionForm>
         </Card>
       )}

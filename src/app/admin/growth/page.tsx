@@ -14,6 +14,7 @@ import { significance } from "@/lib/marketing/stats";
 import { thirdPartyIds } from "@/lib/consent";
 import { formatDateTime } from "@/lib/utils";
 import type { Tables } from "@/lib/supabase/database.types";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Growth Center", robots: { index: false } };
 type SP = Record<string, string | string[] | undefined>;
@@ -135,7 +136,7 @@ async function Landings({ sp, supabase }: { sp: SP; supabase: SB }) {
 function LandingForm({ lp, campaigns }: { lp?: Tables<"landing_pages">; campaigns: { id: string; name: string }[] }) {
   return (
     <ActionForm action={saveLanding} submitLabel="Salva landing" hidden={lp ? { id: lp.id } : undefined}>
-      {(state) => { const e = state.fieldErrors ?? {}; return (
+      {((state: FormState) => { const e = state.fieldErrors ?? {}; return (
         <div className="grid gap-4 md:grid-cols-2">
           <Field id="slug" label="Indirizzo (/lp/…)" error={e.slug}><Input id="slug" name="slug" required defaultValue={lp?.slug} placeholder="prima-auto-milano" /></Field>
           <Field id="title" label="Titolo della pagina (SEO)" error={e.title}><Input id="title" name="title" required maxLength={70} defaultValue={lp?.title} /></Field>
@@ -154,7 +155,7 @@ function LandingForm({ lp, campaigns }: { lp?: Tables<"landing_pages">; campaign
           <Checkbox id="experiment_active" name="experiment_active" defaultChecked={lp?.experiment_active} label="Esperimento A/B attivo (metà delle viste vede la variante B)" />
           <Checkbox id="indexable" name="indexable" defaultChecked={lp?.indexable} label="Indicizzabile sui motori di ricerca (mai durante un esperimento)" />
           <Field id="status" label="Stato"><Select id="status" name="status" defaultValue={lp?.status ?? "bozza"}>{Object.entries(LP_STATUS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select></Field>
-        </div>); }}
+        </div>); })(initialFormState)}
     </ActionForm>
   );
 }
@@ -200,7 +201,7 @@ function MessageForm({ m, campaigns }: { m?: Tables<"marketing_messages">; campa
   const s = (m?.segment ?? {}) as Record<string, string>;
   return (
     <ActionForm action={saveMessage} submitLabel="Salva bozza" hidden={m ? { id: m.id } : undefined}>
-      {(state) => { const e = state.fieldErrors ?? {}; return (
+      {((state: FormState) => { const e = state.fieldErrors ?? {}; return (
         <div className="grid gap-4 md:grid-cols-2">
           <Field id="subject" label="Oggetto" error={e.subject} className="md:col-span-2"><Input id="subject" name="subject" required defaultValue={m?.subject} /></Field>
           <Field id="body" label="Testo" hint="Niente promesse non verificabili, niente prezzi o disponibilità non confermati dai partner." error={e.body} className="md:col-span-2"><Textarea id="body" name="body" rows={5} required defaultValue={m?.body} /></Field>
@@ -216,7 +217,7 @@ function MessageForm({ m, campaigns }: { m?: Tables<"marketing_messages">; campa
           <Field id="campagna" label="Arrivati dalla campagna (UTM)" optional><Input id="campagna" name="campagna" defaultValue={s.campagna ?? ""} /></Field>
           <Field id="campaign_id" label="Campagna collegata" optional><Select id="campaign_id" name="campaign_id" defaultValue={m?.campaign_id ?? ""}><option value="">Nessuna</option>{campaigns.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select></Field>
           <label className="flex items-center gap-2 text-sm md:col-span-2"><input type="checkbox" name="submit" value="1" className="size-5 accent-orange" /> Invia al fondatore per l&apos;approvazione</label>
-        </div>); }}
+        </div>); })(initialFormState)}
     </ActionForm>
   );
 }
@@ -239,7 +240,7 @@ async function Workflows({ supabase, founder }: { supabase: SB; founder: boolean
           <p className="font-bold">{w.name} {w.active ? <Badge tone="success">Attiva</Badge> : <Badge>Non attiva</Badge>}</p>
           <p className="text-sm text-muted">Condizione: {w.condition_description} Massimo {w.max_per_user} invio per persona, almeno {w.cooldown_days} giorni tra due invii.</p>
           <ActionForm action={saveWorkflow} submitLabel="Salva" size="sm" hidden={{ key: w.key }} className="mt-2">
-            {(state) => { const e = state.fieldErrors ?? {}; return (
+            {((state: FormState) => { const e = state.fieldErrors ?? {}; return (
               <div className="grid gap-3 md:grid-cols-3">
                 <Field id={`t-${w.key}`} label="Titolo" error={e.title}><Input id={`t-${w.key}`} name="title" defaultValue={w.title} /></Field>
                 <Field id={`l-${w.key}`} label="Link" error={e.link}><Input id={`l-${w.key}`} name="link" defaultValue={w.link} /></Field>
@@ -248,7 +249,7 @@ async function Workflows({ supabase, founder }: { supabase: SB; founder: boolean
                 <Field id={`m-${w.key}`} label="Invii massimi per persona"><Input id={`m-${w.key}`} name="max_per_user" type="number" min={1} max={5} defaultValue={w.max_per_user} /></Field>
                 <Field id={`c-${w.key}`} label="Giorni tra due invii"><Input id={`c-${w.key}`} name="cooldown_days" type="number" min={1} max={365} defaultValue={w.cooldown_days} /></Field>
                 <Checkbox id={`e-${w.key}`} name="send_email" defaultChecked={w.send_email} label="Anche via email (solo con consenso)" />
-              </div>); }}
+              </div>); })(initialFormState)}
           </ActionForm>
           <div className="mt-2">
             {w.active ? <ActionForm action={toggleWorkflow} submitLabel="Disattiva" size="sm" variant="outline" hidden={{ key: w.key, active: "0" }} />

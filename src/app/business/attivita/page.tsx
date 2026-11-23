@@ -9,6 +9,7 @@ import { saveTask, setTaskStatus } from "@/lib/actions/business";
 import { getBusinessContext } from "@/lib/business/context";
 import { nowMs } from "@/lib/bookings/time";
 import { formatDateTime } from "@/lib/utils";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Attività" };
 const KINDS: Record<string, string> = { rispondere: "Rispondere a una richiesta", richiamare: "Richiamare un cliente", preventivo: "Inviare un preventivo", confermare_appuntamento: "Confermare un appuntamento", aggiornare_annuncio: "Aggiornare un annuncio", rispondere_recensione: "Rispondere a una recensione", altro: "Altro" };
@@ -56,14 +57,14 @@ async function Content({ searchParams }: { searchParams: Promise<Record<string, 
       <Card className="h-fit p-5">
         <h2 className="mb-3 font-bold">Nuova attività</h2>
         <ActionForm action={saveTask} submitLabel="Crea" hidden={{ profile_id: current.profile_id }} resetOnSuccess>
-          {(s) => (<>
+          {((s: FormState) => (<>
             <Field id="t" label="Titolo" error={s.fieldErrors?.title}><Input id="t" name="title" required maxLength={160} /></Field>
             <Field id="k" label="Tipo"><Select id="k" name="kind" defaultValue="altro">{Object.entries(KINDS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</Select></Field>
             <Field id="p" label="Priorità"><Select id="p" name="priority" defaultValue="media"><option value="bassa">Bassa</option><option value="media">Media</option><option value="alta">Alta</option></Select></Field>
             <Field id="d" label="Scadenza (ora di Milano)" optional><Input id="d" name="due_at" type="datetime-local" /></Field>
             {(members?.length ?? 0) > 0 && <Field id="a" label="Assegna a" optional><Select id="a" name="assigned_to" defaultValue=""><option value="">Me / titolare</option>{members!.map((m) => <option key={m.user_id!} value={m.user_id!}>{m.invite_email}</option>)}</Select></Field>}
             <Field id="ds" label="Dettagli" optional><Textarea id="ds" name="description" rows={2} maxLength={2000} /></Field>
-          </>)}
+          </>))(initialFormState)}
         </ActionForm>
       </Card>
     </div>

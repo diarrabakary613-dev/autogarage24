@@ -9,6 +9,7 @@ import { adminArchiveRule, adminPublishRule, adminSaveRuleDraft, adminTestRule }
 import { evaluateVehicle, type RuleParams } from "@/lib/neopatentati/engine";
 import { formatDate, formatDateTime } from "@/lib/utils";
 import type { Tables } from "@/lib/supabase/database.types";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Regole neopatentati", robots: { index: false } };
 
@@ -48,7 +49,7 @@ async function Content({ searchParams }: { searchParams: PageProps<"/admin/neopa
         <h2 className="mb-1 font-bold">{editing ? `Modifica bozza «${editing.version_label}»` : "Nuova versione (bozza)"}</h2>
         <p className="mb-4 text-sm text-muted">{editing ? "Ogni modifica annulla il test precedente." : `Parametri precompilati da «${base?.version_label ?? "—"}». Le eccezioni vengono copiate dalla versione di partenza.`}</p>
         <ActionForm action={adminSaveRuleDraft} submitLabel="Salva bozza" hidden={{ id: editing?.id, copy_from: editing ? undefined : base?.id }}>
-          {(s) => { const p = (base?.params ?? {}) as RuleParams; const fe = s.fieldErrors ?? {}; return (
+          {((s: FormState) => { const p = (base?.params ?? {}) as RuleParams; const fe = s.fieldErrors ?? {}; return (
             <div className="grid gap-3 sm:grid-cols-3">
               <Field id="rv-l" label="Nome versione" error={fe.version_label}><Input id="rv-l" name="version_label" defaultValue={editing?.version_label ?? ""} /></Field>
               <Field id="rv-ef" label="In vigore dal" error={fe.effective_from}><Input id="rv-ef" name="effective_from" type="date" defaultValue={editing?.effective_from ?? ""} /></Field>
@@ -63,7 +64,7 @@ async function Content({ searchParams }: { searchParams: PageProps<"/admin/neopa
               <Field id="rv-c" label="Data di consultazione delle fonti"><Input id="rv-c" name="consulted_on" type="date" defaultValue={editing?.consulted_on ?? ""} /></Field>
               <Field id="rv-re" label="Motivazione del cambiamento" className="sm:col-span-2"><Input id="rv-re" name="reason" defaultValue={editing?.reason ?? ""} /></Field>
             </div>
-          ); }}
+          ); })(initialFormState)}
         </ActionForm>
       </Card>
     </div>

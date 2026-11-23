@@ -15,6 +15,7 @@ import { TRANSPORT_SERVICES, TRANSPORT_STATUS } from "@/lib/services/labels";
 import { formatPrice } from "@/lib/format";
 import { formatDate, formatDateTime } from "@/lib/utils";
 import { nowMs } from "@/lib/bookings/time";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Trasporto auto", robots: { index: false } };
 
@@ -90,7 +91,7 @@ async function Detail({ params, searchParams }: { params: Promise<{ id: string }
               <Card className="p-5">
                 <h2 className="mb-3 font-bold">{myQuote ? "Aggiorna il tuo preventivo" : "Invia un preventivo"}</h2>
                 <ActionForm action={sendTransportQuote} submitLabel="Invia preventivo" hidden={{ id }}>
-                  {(s) => (
+                  {((s: FormState) => (
                     <div className="grid gap-3 sm:grid-cols-2">
                       <Field id="qa" label="Prezzo totale (€, IVA inclusa)" error={s.fieldErrors?.amount}><Input id="qa" name="amount" type="number" min={10} step="0.01" required /></Field>
                       <Field id="qt" label="Tipo di trasporto" optional><Input id="qt" name="transport_type" maxLength={100} placeholder="Es. bisarca 8 posti" /></Field>
@@ -101,7 +102,7 @@ async function Detail({ params, searchParams }: { params: Promise<{ id: string }
                       <Field id="qv" label="Validità (giorni)"><Input id="qv" name="valid_days" type="number" min={1} max={30} defaultValue={7} /></Field>
                       <div className="flex items-end pb-2">{myOp.insurance_declared ? <Checkbox id="qi" name="includes_insurance" label="Include la copertura assicurativa dichiarata nel profilo" /> : <p className="text-xs text-muted">Nessuna copertura dichiarata nel profilo.</p>}</div>
                     </div>
-                  )}
+                  ))(initialFormState)}
                 </ActionForm>
               </Card>
             )
@@ -177,7 +178,7 @@ function ReportForm({ id, kind, userId }: { id: string; kind: "ritiro" | "conseg
     <details className="rounded-xl border border-line p-3" open>
       <summary className="cursor-pointer font-semibold">Compila il verbale di {kind}</summary>
       <ActionForm action={addTransportReport} submitLabel={`Registra il verbale di ${kind}`} hidden={{ id, kind }} className="mt-3">
-        {(s) => (
+        {((s: FormState) => (
           <>
             <FileUploader bucket="service-photos" folder={userId} kind="image" label="Foto del veicolo (almeno una)" multiple max={12} name="photo_paths" />
             <div className="grid gap-3 sm:grid-cols-2">
@@ -190,7 +191,7 @@ function ReportForm({ id, kind, userId }: { id: string; kind: "ritiro" | "conseg
             <Field id={`cp-${kind}`} label="Nome della persona presente" optional><Input id={`cp-${kind}`} name="counterpart_name" maxLength={120} /></Field>
             <Checkbox id={`cf-${kind}`} name="confirmed" error={s.fieldErrors?.confirmed} label="Ho mostrato il verbale alla persona presente, che ne ha preso visione." />
           </>
-        )}
+        ))(initialFormState)}
       </ActionForm>
     </details>
   );

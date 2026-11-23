@@ -12,6 +12,7 @@ import { deleteValuation, proposeTradeIn, requestProfessional, updateValuation }
 import { formatPrice } from "@/lib/format";
 import { ACCIDENTS, CONDITIONS, DISCLAIMER, RELIABILITY } from "@/lib/valuation/labels";
 import { formatDateTime } from "@/lib/utils";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Valutazione", robots: { index: false } };
 
@@ -80,11 +81,11 @@ async function Detail({ params, searchParams }: { params: Promise<{ id: string }
               <h2 className="font-bold">Proponi una permuta per «{listing.title}»</h2>
               <p className="text-sm">Prezzo richiesto: <strong>{formatPrice(listing.price_cents)}</strong>{est ? ` · valore indicativo della tua auto: ${formatPrice(v.estimate_mid_cents!)} · differenza indicativa: ${formatPrice((listing.price_cents ?? 0) - v.estimate_mid_cents!)}` : ""}</p>
               <ActionForm action={proposeTradeIn} submitLabel="Invia la proposta al venditore" hidden={{ listing_id: listing.id, valuation_id: id }}>
-                {(s) => (<>
+                {((s: FormState) => (<>
                   <Field id="tv" label="Valore che proponi per la tua auto (€)" error={s.fieldErrors?.value}><Input id="tv" name="value" type="number" min={100} step="100" required defaultValue={est ? Math.round(v.estimate_mid_cents! / 100) : ""} /></Field>
                   <Field id="tm" label="Messaggio" optional><Textarea id="tm" name="message" rows={2} maxLength={1000} /></Field>
                   <p className="text-xs text-muted">Il calcolo è preliminare: non è un accordo concluso. Il venditore può valutare, chiedere un&apos;ispezione o controproporre.</p>
-                </>)}
+                </>))(initialFormState)}
               </ActionForm>
             </Card>
           )}
@@ -93,7 +94,7 @@ async function Detail({ params, searchParams }: { params: Promise<{ id: string }
             <h2 className="font-bold">Chiedi una valutazione professionale</h2>
             {!pros?.length ? <p className="text-sm text-muted">Non ci sono ancora concessionari o officine verificati disponibili per le valutazioni.</p> : (
               <ActionForm action={requestProfessional} submitLabel="Invia ai professionisti scelti" hidden={{ id }}>
-                {(s) => (<>
+                {((s: FormState) => (<>
                   <fieldset><legend className="mb-1 text-sm font-semibold">Professionisti (fino a 5)</legend>
                     <div className="grid gap-2 sm:grid-cols-2">{pros.map((p) => <Checkbox key={p.profile_id} id={`p-${p.profile_id}`} name="profile_ids" value={p.profile_id} label={`${p.display_name}${p.city ? ` · ${p.city}` : ""}${p.professional_type === "venditore_auto" ? " (concessionario)" : " (officina)"}${p.review_count ? ` · ★ ${String(p.rating_avg).replace(".", ",")}` : ""}`} />)}</div></fieldset>
                   <Field id="pi" label="Cosa ti serve"><Select id="pi" name="intent" defaultValue="vendita"><option value="vendita">Valutazione e offerta di acquisto</option><option value="valutazione">Solo valutazione</option></Select></Field>
@@ -104,7 +105,7 @@ async function Detail({ params, searchParams }: { params: Promise<{ id: string }
                   {est && <Checkbox id="se" name="share_estimate" label="Mostra anche la stima preliminare" />}
                   <Field id="pm" label="Messaggio" optional><Textarea id="pm" name="message" rows={2} maxLength={1000} /></Field>
                   <Checkbox id="pc" name="consent" error={s.fieldErrors?.consent} label="Acconsento a condividere con i professionisti scelti i dati dell'auto e le foto selezionate. Targa e dati di contatto non vengono condivisi." />
-                </>)}
+                </>))(initialFormState)}
               </ActionForm>
             )}
           </Card>

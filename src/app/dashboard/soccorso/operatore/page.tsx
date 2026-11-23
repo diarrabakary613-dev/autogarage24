@@ -12,6 +12,7 @@ import { saveRoadsideOperator, setRoadsideAvailability } from "@/lib/actions/roa
 import { OPERATOR_STATUS, ROADSIDE_SERVICES, VEHICLE_TYPES } from "@/lib/services/labels";
 import { formatDateTime } from "@/lib/utils";
 import { nowMs } from "@/lib/bookings/time";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Operatore di assistenza stradale", robots: { index: false } };
 
@@ -64,7 +65,7 @@ async function Content() {
       <Card className="p-5">
         <h2 className="mb-3 font-bold">{op ? "Servizi offerti" : "Attiva il servizio di soccorso"}</h2>
         <ActionForm action={saveRoadsideOperator} submitLabel={op ? "Salva" : "Invia per la verifica"} hidden={{ profile_id: p.id }}>
-          {(s) => (
+          {((s: FormState) => (
             <>
               <fieldset><legend className="mb-1 text-sm font-semibold">Interventi {s.fieldErrors?.services && <span className="text-danger">· {s.fieldErrors.services}</span>}</legend>
                 <div className="grid gap-2 sm:grid-cols-2">{Object.entries(ROADSIDE_SERVICES).map(([k, l]) => <Checkbox key={k} id={`sv-${k}`} name="services" value={k} label={l} defaultChecked={op?.services.includes(k)} />)}</div></fieldset>
@@ -75,7 +76,7 @@ async function Content() {
               <Field id="pn" label="Tariffe indicative" optional hint="Mostrate come «dichiarate dall'operatore». Il prezzo vincolante è quello del preventivo."><Textarea id="pn" name="price_notes" rows={2} maxLength={1000} defaultValue={op?.price_notes ?? ""} /></Field>
               <p className="text-xs text-muted">Zona coperta: raggio di {p.service_radius_km ?? 30} km dalla sede del profilo «{p.display_name}». Lo modifichi nel <Link className="underline" href="/dashboard/profilo-professionale">profilo aziendale</Link>. Per la verifica lo staff può chiederti visura camerale e autorizzazioni (es. iscrizione per l&apos;attività di soccorso e rimozione).</p>
             </>
-          )}
+          ))(initialFormState)}
         </ActionForm>
       </Card>
     </div>

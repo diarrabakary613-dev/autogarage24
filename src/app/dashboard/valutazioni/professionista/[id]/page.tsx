@@ -13,6 +13,7 @@ import { professionalAction } from "@/lib/actions/valuation";
 import { formatPrice } from "@/lib/format";
 import { ACCIDENTS, CONDITIONS, INSPECTION_STATES, TARGET_STATUS } from "@/lib/valuation/labels";
 import { nowMs } from "@/lib/bookings/time";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Richiesta di valutazione", robots: { index: false } };
 
@@ -59,13 +60,13 @@ async function Detail({ params }: { params: Promise<{ id: string }> }) {
             <Card className="flex flex-col gap-3 p-5">
               <h2 className="font-bold">Invia una proposta</h2>
               <ActionForm action={professionalAction} submitLabel="Invia proposta" hidden={{ id, action: "proposta" }}>
-                {(s) => (<div className="grid gap-2 sm:grid-cols-2">
+                {((s: FormState) => (<div className="grid gap-2 sm:grid-cols-2">
                   <Field id="k" label="Tipo"><Select id="k" name="kind" defaultValue={r.intent === "vendita" ? "offerta_acquisto" : "valutazione"}><option value="offerta_acquisto">Offerta di acquisto</option><option value="valutazione">Solo valutazione</option></Select></Field>
                   <Field id="a" label="Importo (€)" error={s.fieldErrors?.amount}><Input id="a" name="amount" type="number" min={100} step="100" required /></Field>
                   <Field id="c" label="Condizioni" optional className="sm:col-span-2"><Textarea id="c" name="conditions" rows={2} maxLength={1000} placeholder="Es. salvo verifica in sede, passaggio di proprietà a nostro carico" /></Field>
                   <Field id="vd" label="Validità (giorni)"><Input id="vd" name="valid_days" type="number" min={1} max={30} defaultValue={7} /></Field>
                   <div className="flex items-end pb-2"><Checkbox id="ri" name="requires_inspection" defaultChecked label="Soggetta a ispezione del veicolo" /></div>
-                </div>)}
+                </div>))(initialFormState)}
               </ActionForm>
               <ActionForm action={professionalAction} submitLabel="Chiedi informazioni" size="sm" variant="outline" hidden={{ id, action: "info" }}>
                 <Field id="ni" label="Cosa ti serve sapere"><Input id="ni" name="note" required maxLength={1000} /></Field>

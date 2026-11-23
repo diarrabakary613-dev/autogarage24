@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 import Link from "next/link";
 import { ActionForm } from "@/components/ui/action-form";
 import { Alert, Badge, Card, EmptyState } from "@/components/ui/feedback";
@@ -232,7 +233,7 @@ async function ContactDetail({ id }: { id: string }) {
             {c.status !== "non_interessato" && (
               <details className="mt-3"><summary className="cursor-pointer text-sm font-semibold text-orange-700">Segna come non interessato</summary>
                 <ActionForm action={moveContact} submitLabel="Conferma" size="sm" variant="outline" hidden={{ id: c.id, status: "non_interessato" }} className="mt-2">
-                  {(s) => <Field id="lr" label="Motivo" error={s.fieldErrors?.lost_reason}><Input id="lr" name="lost_reason" /></Field>}
+                  {((s: FormState) => <Field id="lr" label="Motivo" error={s.fieldErrors?.lost_reason}><Input id="lr" name="lost_reason" /></Field>)(initialFormState)}
                 </ActionForm>
               </details>
             )}
@@ -272,10 +273,10 @@ async function ContactDetail({ id }: { id: string }) {
               </ActionForm>
             ) : (
               <ActionForm action={setFoundingPartner} submitLabel="Ammetti al programma" size="sm" hidden={{ contact_id: c.id, admit: "1" }} confirm="Confermi l'ammissione? Il badge sarà visibile sul profilo collegato.">
-                {(s) => (<div className="grid gap-2">
+                {((s: FormState) => (<div className="grid gap-2">
                   <Field id="fp" label="Profilo pubblico (indirizzo o slug)" optional error={s.fieldErrors?.profile_slug} hint={pro ? `Collegato: ${pro.slug}` : undefined}><Input id="fp" name="profile_slug" defaultValue={pro?.slug ?? ""} /></Field>
                   <Field id="fn" label="Note di onboarding" optional><Textarea id="fn" name="note" rows={2} /></Field>
-                </div>)}
+                </div>))(initialFormState)}
               </ActionForm>
             )}
           </Card>

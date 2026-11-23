@@ -11,6 +11,7 @@ import { partnerCancelRedemption, saveRewardItem, setRewardItemStatus, consumeRe
 import { BENEFIT_TYPES, benefitText, fmtPoints, ITEM_CATEGORIES, ITEM_STATUS, REDEMPTION_STATUS } from "@/lib/rewards/labels";
 import { formatDate, formatDateTime } from "@/lib/utils";
 import type { Tables } from "@/lib/supabase/database.types";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Premi Rewards (partner)", robots: { index: false } };
 type SP = Record<string, string | string[] | undefined>;
@@ -79,7 +80,7 @@ function Codes({ reds, items }: { reds: { id: string; code: string; status: stri
         <h2 className="font-bold">Convalida un codice</h2>
         <p className="mt-1 text-sm text-muted">Il cliente mostra il codice RW-… dalla sua area Rewards. Confrontalo con l&apos;elenco qui sotto, poi convalidalo: un codice si usa una sola volta.</p>
         <ActionForm action={consumeRewardCode} submitLabel="Segna come utilizzato" resetOnSuccess className="mt-3">
-          {(state) => <Field id="code" label="Codice premio" error={state.fieldErrors?.code}><Input id="code" name="code" required placeholder="RW-XXXXXXXXXX" autoComplete="off" className="font-mono uppercase" /></Field>}
+          {((state: FormState) => <Field id="code" label="Codice premio" error={state.fieldErrors?.code}><Input id="code" name="code" required placeholder="RW-XXXXXXXXXX" autoComplete="off" className="font-mono uppercase" /></Field>)(initialFormState)}
         </ActionForm>
       </Card>
       <Card className="p-5">
@@ -90,7 +91,7 @@ function Codes({ reds, items }: { reds: { id: string; code: string; status: stri
               <span><span className="font-mono font-bold">{r.code}</span> · {title.get(r.item_id)} · emesso {formatDateTime(r.created_at)} · valido fino al {formatDate(r.valid_until)}{r.used_at ? ` · usato ${formatDateTime(r.used_at)}` : ""}</span>
               <span className="flex items-center gap-2"><Badge tone={r.status === "emesso" ? "orange" : r.status === "utilizzato" ? "success" : "neutral"}>{REDEMPTION_STATUS[r.status as keyof typeof REDEMPTION_STATUS]}</Badge>
                 {r.status === "emesso" && <ActionForm action={partnerCancelRedemption} submitLabel="Annulla" size="sm" variant="ghost" hidden={{ id: r.id }} confirm="Annullare il codice? I punti tornano al cliente.">
-                  {(state) => <Field id={`reason-${r.id}`} label="Motivo" error={state.fieldErrors?.reason}><Input id={`reason-${r.id}`} name="reason" required minLength={5} /></Field>}
+                  {((state: FormState) => <Field id={`reason-${r.id}`} label="Motivo" error={state.fieldErrors?.reason}><Input id={`reason-${r.id}`} name="reason" required minLength={5} /></Field>)(initialFormState)}
                 </ActionForm>}</span>
             </li>
           ))}</ul>
@@ -103,7 +104,7 @@ function Codes({ reds, items }: { reds: { id: string; code: string; status: stri
 function ItemForm({ profileId, i }: { profileId: string; i?: Tables<"reward_items"> }) {
   return (
     <ActionForm action={saveRewardItem} submitLabel="Salva bozza" hidden={{ profile_id: profileId, ...(i ? { id: i.id } : {}) }}>
-      {(state) => {
+      {((state: FormState) => {
         const e = state.fieldErrors ?? {};
         return (
           <div className="grid gap-4 md:grid-cols-2">
@@ -123,7 +124,7 @@ function ItemForm({ profileId, i }: { profileId: string; i?: Tables<"reward_item
             <label className="flex items-center gap-2 text-sm md:col-span-2"><input type="checkbox" name="submit" value="1" className="size-5 accent-orange" /> Invia subito allo staff per l&apos;approvazione</label>
           </div>
         );
-      }}
+      })(initialFormState)}
     </ActionForm>
   );
 }

@@ -10,6 +10,7 @@ import { adminSaveContent, adminUnpublishContent } from "@/lib/actions/admin";
 import { CMS_FIELDS } from "@/config/cms";
 import { formatDateTime } from "@/lib/utils";
 import type { Tables } from "@/lib/supabase/database.types";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Contenuti del sito", robots: { index: false } };
 const PREVIEW: Record<string, string> = { "home.hero": "/", "home.announcement": "/", "home.neopatentati": "/", "site.contacts": "/contatti", "faq.neopatentati": "/auto-per-neopatentati", "faq.garages": "/garages", "faq.meccanici": "/meccanici", "faq.ricambi": "/ricambi" };
@@ -43,14 +44,14 @@ async function Editor({ searchParams }: { searchParams: PageProps<"/admin/conten
           <h2 className="mb-1 font-bold">{row?.label ?? key}</h2>
           <p className="mb-4 text-sm text-muted">{published ? `Pubblicato il ${formatDateTime(row!.published_at)}` : "Non pubblicato: il sito mostra il testo predefinito."} {PREVIEW[key] && <Link className="underline" href={PREVIEW[key]} target="_blank">Apri la pagina</Link>}</p>
           <ActionForm action={adminSaveContent} submitLabel="Salva" hidden={{ key }}>
-            {(s) => (<>
+            {((s: FormState) => (<>
               {CMS_FIELDS[key].map((f) => (
                 <Field key={f.name} id={`c-${f.name}`} label={f.label} hint={f.hint}>
                   {f.multiline ? <Textarea id={`c-${f.name}`} name={f.name} rows={3} defaultValue={s.values?.[f.name] ?? draft[f.name] ?? ""} maxLength={2000} /> : <Input id={`c-${f.name}`} name={f.name} defaultValue={draft[f.name] ?? ""} maxLength={2000} />}
                 </Field>
               ))}
               <Field id="c-pub" label="Dopo il salvataggio"><Select id="c-pub" name="publish" defaultValue="0"><option value="0">Mantieni come bozza</option><option value="1">Pubblica subito</option></Select></Field>
-            </>)}
+            </>))(initialFormState)}
           </ActionForm>
           {published && <ActionForm action={adminUnpublishContent} submitLabel="Ritira la pubblicazione" size="sm" variant="outline" hidden={{ key }} confirm="Tornare ai testi predefiniti?" className="mt-3" />}
         </Card>

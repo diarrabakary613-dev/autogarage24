@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 import Link from "next/link";
 import { ActionForm } from "@/components/ui/action-form";
 import { Alert, Badge, Card, EmptyState } from "@/components/ui/feedback";
@@ -53,7 +54,7 @@ async function Overview({ supabase }: { supabase: SB }) {
           <>
             <Alert tone="warning" className="mt-3">Prima di attivare: regolamento definitivo validato da un consulente, verifica della disciplina sulle manifestazioni a premio (DPR 430/2001: comunicazioni, cauzione, eventuali esclusioni), trattamento fiscale dei premi e accordi scritti con i partner che li erogano. AutoGarage24 non ha ancora completato queste verifiche.</Alert>
             <ActionForm action={adminSetRewardsEnabled} submitLabel="Attiva il programma" hidden={{ enabled: "1" }} confirm="Attivare l'assegnazione dei punti e i riscatti?" className="mt-3">
-              {(state) => <Checkbox id="confirm_legal" name="confirm_legal" error={state.fieldErrors?.confirm_legal} label="Confermo che regolamento, verifiche fiscali/normative e accordi con i partner sono stati completati." />}
+              {((state: FormState) => <Checkbox id="confirm_legal" name="confirm_legal" error={state.fieldErrors?.confirm_legal} label="Confermo che regolamento, verifiche fiscali/normative e accordi con i partner sono stati completati." />)(initialFormState)}
             </ActionForm>
           </>
         ) : <ActionForm action={adminSetRewardsEnabled} submitLabel="Disattiva il programma" variant="outline" hidden={{ enabled: "0" }} confirm="Sospendere nuovi punti e riscatti? Saldi e codici esistenti restano." className="mt-3" />}
@@ -81,7 +82,7 @@ async function Rules({ supabase }: { supabase: SB }) {
           <p className="font-bold">{r.label} <span className="font-mono text-xs text-muted">{r.key}</span> {r.active ? <Badge tone="success">Attiva</Badge> : <Badge>Non attiva</Badge>}</p>
           <p className="text-sm text-muted">{r.description}</p>
           <ActionForm action={adminSaveRule} submitLabel="Salva" size="sm" hidden={{ key: r.key }} className="mt-2">
-            {(state) => (
+            {((state: FormState) => (
               <div className="grid gap-3 sm:grid-cols-5">
                 <Field id={`p-${r.key}`} label="Punti" error={state.fieldErrors?.points}><Input id={`p-${r.key}`} name="points" type="number" min={0} defaultValue={r.points} /></Field>
                 <Field id={`m-${r.key}`} label="Max per utente" optional><Input id={`m-${r.key}`} name="max_per_user" type="number" min={1} defaultValue={r.max_per_user ?? ""} /></Field>
@@ -90,7 +91,7 @@ async function Rules({ supabase }: { supabase: SB }) {
                 <div className="flex flex-col justify-end gap-1 text-sm"><label className="flex items-center gap-2"><input type="checkbox" name="active" defaultChecked={r.active} className="size-4 accent-orange" />Attiva</label>
                   <label className="flex items-center gap-2"><input type="checkbox" name="tier_bonus" defaultChecked={r.tier_bonus} className="size-4 accent-orange" />Bonus livello</label></div>
               </div>
-            )}
+            ))(initialFormState)}
           </ActionForm>
         </Card>
       ))}
@@ -152,7 +153,7 @@ async function Redemptions({ supabase }: { supabase: SB }) {
         <span><span className="font-mono font-bold">{r.code}</span> · {(r.reward_items as unknown as { title: string } | null)?.title} · {(r.professional_profiles as unknown as { display_name: string } | null)?.display_name} · {fmtPoints(r.points_spent)} · {formatDateTime(r.created_at)}{r.cancel_reason ? ` · ${r.cancel_reason}` : ""}</span>
         <span className="flex items-center gap-2"><Badge>{REDEMPTION_STATUS[r.status as keyof typeof REDEMPTION_STATUS]}</Badge>
           {r.status === "emesso" && <ActionForm action={adminCancelRedemption} submitLabel="Annulla e rimborsa" size="sm" variant="ghost" hidden={{ id: r.id }}>
-            {(state) => <Field id={`cr-${r.id}`} label="Motivo" error={state.fieldErrors?.reason}><Input id={`cr-${r.id}`} name="reason" required /></Field>}
+            {((state: FormState) => <Field id={`cr-${r.id}`} label="Motivo" error={state.fieldErrors?.reason}><Input id={`cr-${r.id}`} name="reason" required /></Field>)(initialFormState)}
           </ActionForm>}</span>
       </Card></li>
     ))}</ul>
@@ -194,12 +195,12 @@ async function Adjust({ supabase }: { supabase: SB }) {
       <Card className="p-5"><h2 className="font-bold">Rettifica manuale</h2>
         <p className="text-sm text-muted">Usa valori negativi per togliere punti. La motivazione è comunicata all&apos;utente e salvata nel registro attività. Non puoi rettificare il tuo saldo.</p>
         <ActionForm action={adminAdjustPoints} submitLabel="Registra rettifica" resetOnSuccess className="mt-3" confirm="Registrare la rettifica?">
-          {(state) => { const e = state.fieldErrors ?? {}; return (
+          {((state: FormState) => { const e = state.fieldErrors ?? {}; return (
             <div className="grid gap-3 sm:grid-cols-3">
               <Field id="email" label="Email dell'utente" error={e.email}><Input id="email" name="email" type="email" required /></Field>
               <Field id="amount" label="Punti (+/−)" error={e.amount}><Input id="amount" name="amount" type="number" required /></Field>
               <Field id="reason" label="Motivazione" error={e.reason}><Input id="reason" name="reason" required minLength={10} /></Field>
-            </div>); }}
+            </div>); })(initialFormState)}
         </ActionForm>
       </Card>
       <Card className="p-5"><h2 className="font-bold">Ultimi movimenti</h2>
@@ -208,7 +209,7 @@ async function Adjust({ supabase }: { supabase: SB }) {
             <li key={l.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
               <span>{formatDateTime(l.created_at)} · {mail.get(l.user_id) ?? "utente"} · {LEDGER_KIND[l.kind as keyof typeof LEDGER_KIND]}{l.rule_key ? ` (${l.rule_key})` : ""}{l.reason ? ` · ${l.reason}` : ""} · <strong>{l.amount > 0 ? "+" : ""}{l.amount}</strong></span>
               {l.kind === "guadagno" && <ActionForm action={adminRevokePoints} submitLabel="Revoca" size="sm" variant="ghost" hidden={{ ledger_id: String(l.id) }}>
-                {(state) => <Field id={`rv-${l.id}`} label="Motivazione" error={state.fieldErrors?.reason}><Input id={`rv-${l.id}`} name="reason" required minLength={10} /></Field>}
+                {((state: FormState) => <Field id={`rv-${l.id}`} label="Motivazione" error={state.fieldErrors?.reason}><Input id={`rv-${l.id}`} name="reason" required minLength={10} /></Field>)(initialFormState)}
               </ActionForm>}
             </li>
           ))}</ul>

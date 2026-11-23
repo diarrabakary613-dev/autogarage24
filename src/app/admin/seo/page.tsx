@@ -16,6 +16,7 @@ import { thirdPartyIds } from "@/lib/consent";
 import { getSiteUrl } from "@/lib/env";
 import { formatDateTime } from "@/lib/utils";
 import type { Tables } from "@/lib/supabase/database.types";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "SEO Manager", robots: { index: false } };
 type SP = Record<string, string | string[] | undefined>;
@@ -110,7 +111,7 @@ function ArticleForm({ a, cats, userId }: { a?: Tables<"blog_articles">; cats: {
   const local = (iso: string | null) => (iso ? new Date(iso).toLocaleString("sv-SE", { timeZone: "Europe/Rome" }).slice(0, 16).replace(" ", "T") : "");
   return (
     <ActionForm action={saveArticle} submitLabel="Salva" hidden={a ? { id: a.id } : undefined}>
-      {(state) => { const e = state.fieldErrors ?? {}; return (
+      {((state: FormState) => { const e = state.fieldErrors ?? {}; return (
         <div className="grid gap-4 md:grid-cols-2">
           <Field id="title" label="Titolo (H1)" error={e.title} className="md:col-span-2"><Input id="title" name="title" required minLength={10} maxLength={110} defaultValue={a?.title} /></Field>
           <Field id="slug" label="Indirizzo (/blog/…)" error={e.slug}><Input id="slug" name="slug" required defaultValue={a?.slug} /></Field>
@@ -124,7 +125,7 @@ function ArticleForm({ a, cats, userId }: { a?: Tables<"blog_articles">; cats: {
           <Field id="meta_description" label="Meta description" hint="Max 160 caratteri." optional><Input id="meta_description" name="meta_description" maxLength={160} defaultValue={a?.meta_description ?? ""} /></Field>
           <div><FileUploader bucket="blog-images" folder={userId} kind="image" label={a?.cover_path ? "Sostituisci la copertina" : "Immagine di copertina"} name="cover_path" max={1} /><p className="mt-1 text-xs text-muted">Solo immagini proprie o con licenza d&apos;uso.</p></div>
           <Field id="cover_alt" label="Testo alternativo della copertina" optional><Input id="cover_alt" name="cover_alt" maxLength={160} defaultValue={a?.cover_alt ?? ""} /></Field>
-        </div>); }}
+        </div>); })(initialFormState)}
     </ActionForm>
   );
 }
@@ -157,13 +158,13 @@ async function Meta({ supabase }: { supabase: SB }) {
         <details key={r.path} className="rounded-xl border border-line bg-white p-4">
           <summary className="cursor-pointer font-semibold">{r.path} {o && <Badge tone="orange">personalizzato</Badge>}{o?.noindex && <Badge tone="danger">noindex</Badge>}</summary>
           <ActionForm action={saveOverride} submitLabel="Salva" size="sm" hidden={{ path: r.path }} className="mt-3">
-            {(state) => { const e = state.fieldErrors ?? {}; return (
+            {((state: FormState) => { const e = state.fieldErrors ?? {}; return (
               <div className="grid gap-3 md:grid-cols-2">
                 <Field id={`t-${r.path}`} label="Titolo" optional error={e.title}><Input id={`t-${r.path}`} name="title" maxLength={70} defaultValue={o?.title ?? ""} /></Field>
                 <Field id={`c-${r.path}`} label="Canonical" optional error={e.canonical}><Input id={`c-${r.path}`} name="canonical" defaultValue={o?.canonical ?? ""} placeholder={r.path} /></Field>
                 <Field id={`d-${r.path}`} label="Descrizione" optional error={e.description} className="md:col-span-2"><Input id={`d-${r.path}`} name="description" maxLength={160} defaultValue={o?.description ?? ""} /></Field>
                 <Checkbox id={`ni-${r.path}`} name="noindex" defaultChecked={o?.noindex} label="Escludi dall'indice (noindex)" />
-              </div>); }}
+              </div>); })(initialFormState)}
           </ActionForm>
           {o && <ActionForm action={deleteOverride} submitLabel="Ripristina predefiniti" size="sm" variant="ghost" hidden={{ path: r.path }} className="mt-2" />}
         </details>
@@ -178,13 +179,13 @@ async function Redirects({ supabase }: { supabase: SB }) {
     <div className="flex flex-col gap-4">
       <Card className="p-5"><h2 className="mb-2 font-bold">Nuovo redirect</h2>
         <ActionForm action={saveRedirect} submitLabel="Aggiungi" resetOnSuccess>
-          {(state) => { const e = state.fieldErrors ?? {}; return (
+          {((state: FormState) => { const e = state.fieldErrors ?? {}; return (
             <div className="grid gap-3 md:grid-cols-4">
               <Field id="from_path" label="Da" error={e.from_path}><Input id="from_path" name="from_path" required placeholder="/vecchia-pagina" /></Field>
               <Field id="to_path" label="A" error={e.to_path}><Input id="to_path" name="to_path" required placeholder="/nuova-pagina" /></Field>
               <Field id="status_code" label="Tipo"><Select id="status_code" name="status_code" defaultValue="301"><option value="301">301 permanente</option><option value="302">302 temporaneo</option><option value="308">308 permanente</option></Select></Field>
               <Field id="note" label="Nota" optional><Input id="note" name="note" /></Field>
-            </div>); }}
+            </div>); })(initialFormState)}
         </ActionForm>
         <p className="mt-2 text-xs text-muted">Catene e cicli sono bloccati; aree riservate (admin, area personale, API) escluse.</p>
       </Card>

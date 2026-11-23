@@ -14,6 +14,7 @@ import { CLAIM_STATUS, NEO_TOPICS, OFFER_CATEGORIES, OFFER_STATUS } from "@/lib/
 import { formatPrice } from "@/lib/format";
 import { formatDate, formatDateTime } from "@/lib/utils";
 import type { Tables } from "@/lib/supabase/database.types";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Le mie offerte (partner)", robots: { index: false } };
 type SP = Record<string, string | string[] | undefined>;
@@ -90,7 +91,7 @@ function OfferForm({ profileId, o, userId }: { profileId: string; o?: Tables<"pr
   const eur = (c?: number) => (c ? String(c / 100) : "");
   return (
     <ActionForm action={saveOffer} submitLabel="Salva come bozza" hidden={{ profile_id: profileId, id: o?.id }}>
-      {(s) => (<div className="grid gap-3 sm:grid-cols-2">
+      {((s: FormState) => (<div className="grid gap-3 sm:grid-cols-2">
         <Field id="o-t" label="Titolo" error={s.fieldErrors?.title} className="sm:col-span-2"><Input id="o-t" name="title" defaultValue={o?.title} maxLength={120} /></Field>
         <Field id="o-c" label="Categoria" error={s.fieldErrors?.category}><Select id="o-c" name="category" defaultValue={o?.category ?? "tagliandi"}>{Object.entries(OFFER_CATEGORIES).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</Select></Field>
         <Field id="o-q" label="Quantità disponibile" optional hint="Vuoto = senza limite"><Input id="o-q" name="quantity_total" inputMode="numeric" defaultValue={o?.quantity_total ?? ""} /></Field>
@@ -104,7 +105,7 @@ function OfferForm({ profileId, o, userId }: { profileId: string; o?: Tables<"pr
           <Select name="neo_topic" aria-label="Tipo di offerta per neopatentati" defaultValue={o?.neo_topic ?? "prima_manutenzione"}>{Object.entries(NEO_TOPICS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</Select></div>
         <div><FileUploader bucket="business-media" folder={userId} kind="image" label={o?.image_path ? "Sostituisci la foto" : "Fotografia dell'offerta"} name="image_path" max={1} /><p className="mt-1 text-xs text-muted">Solo foto tue o con diritti d&apos;uso.</p></div>
         <div className="flex items-center gap-2 sm:col-span-2"><input type="checkbox" id="o-sub" name="submit" value="1" className="accent-orange" /><label htmlFor="o-sub" className="text-sm font-semibold">Invia allo staff per la pubblicazione</label></div>
-      </div>)}
+      </div>))(initialFormState)}
     </ActionForm>
   );
 }
@@ -124,7 +125,7 @@ async function Coupons({ profileId, offers }: { profileId: string; offers: { id:
       )}
       <Card className="p-5"><h2 className="mb-3 font-bold">Nuovo coupon</h2>
         <ActionForm action={saveCoupon} submitLabel="Crea coupon" hidden={{ profile_id: profileId }} resetOnSuccess>
-          {(s) => (<div className="grid gap-3">
+          {((s: FormState) => (<div className="grid gap-3">
             <Field id="cp-c" label="Codice" error={s.fieldErrors?.code}><Input id="cp-c" name="code" maxLength={24} placeholder="PRIMA10" /></Field>
             <div className="grid grid-cols-2 gap-3">
               <Field id="cp-t" label="Tipo"><Select id="cp-t" name="discount_type"><option value="percentuale">Percentuale</option><option value="importo">Importo fisso (€)</option></Select></Field>
@@ -136,7 +137,7 @@ async function Coupons({ profileId, offers }: { profileId: string; offers: { id:
             </div>
             <Field id="cp-o" label="Solo per l'offerta" optional><Select id="cp-o" name="offer_id" defaultValue=""><option value="">Tutte le mie offerte</option>{offers.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}</Select></Field>
             <fieldset><legend className="mb-1 text-sm font-semibold">Solo per le categorie (facoltativo)</legend><div className="flex flex-wrap gap-2">{Object.entries(OFFER_CATEGORIES).map(([k, l]) => <Checkbox key={k} id={`cpc-${k}`} name="categories" value={k} label={l} />)}</div></fieldset>
-          </div>)}
+          </div>))(initialFormState)}
         </ActionForm>
       </Card>
     </div>

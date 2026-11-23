@@ -18,6 +18,7 @@ import { FUEL_LABELS, TRANSMISSION_LABELS } from "@/lib/labels";
 import { formatKm } from "@/lib/format";
 import { formatDate } from "@/lib/utils";
 import type { Tables } from "@/lib/supabase/database.types";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Il mio garage", robots: { index: false } };
 
@@ -112,13 +113,13 @@ async function Garage({ searchParams }: { searchParams: PageProps<"/dashboard/ga
               <h2 className="mb-3 text-lg font-bold">Chilometraggio</h2>
               <MileageChart points={(logs.data ?? []).map((l) => ({ date: l.recorded_on, km: l.value_km, bad: l.is_inconsistent }))} />
               <ActionForm action={addMileage} submitLabel="Registra" hidden={{ vehicle_id: v.id }} resetOnSuccess className="mt-4">
-                {(s) => (
+                {((s: FormState) => (
                   <div className="grid gap-3 sm:grid-cols-3">
                     <Field id="km-v" label="Chilometri" error={s.fieldErrors?.value_km}><Input id="km-v" name="value_km" inputMode="numeric" /></Field>
                     <Field id="km-d" label="Data" error={s.fieldErrors?.recorded_on}><Input id="km-d" name="recorded_on" type="date" max={new Date().toISOString().slice(0, 10)} /></Field>
                     <Field id="km-n" label="Nota" optional><Input id="km-n" name="note" maxLength={300} /></Field>
                   </div>
-                )}
+                ))(initialFormState)}
               </ActionForm>
             </Card>
           </div>
@@ -159,7 +160,7 @@ function VehicleForm({ v }: { v?: Tables<"user_vehicles"> }) {
   const known = v?.make_slug && findBrand(v.make_slug);
   return (
     <ActionForm action={saveVehicle} submitLabel={v ? "Salva" : "Aggiungi al garage"} hidden={{ vehicle_id: v?.id }}>
-      {(s) => {
+      {((s: FormState) => {
         const fe = s.fieldErrors ?? {};
         return (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -180,7 +181,7 @@ function VehicleForm({ v }: { v?: Tables<"user_vehicles"> }) {
             <Field id="gv-vin" label="VIN (telaio)" optional error={fe.vin} hint="Privato."><Input id="gv-vin" name="vin" defaultValue={v?.vin ?? ""} autoComplete="off" maxLength={17} /></Field>
           </div>
         );
-      }}
+      })(initialFormState)}
     </ActionForm>
   );
 }

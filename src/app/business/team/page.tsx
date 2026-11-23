@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/ui/misc";
 import { inviteMember, updateMember } from "@/lib/actions/business";
 import { getBusinessContext, MEMBER_ROLES, PERMISSIONS } from "@/lib/business/context";
 import { formatDateTime } from "@/lib/utils";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Team" };
 
@@ -34,14 +35,14 @@ async function Content() {
       <Card className="p-5">
         <h2 className="mb-3 font-bold">Invita un collaboratore</h2>
         <ActionForm action={inviteMember} submitLabel="Invia invito" hidden={{ profile_id: current.profile_id }} resetOnSuccess>
-          {(s) => (<>
+          {((s: FormState) => (<>
             <div className="grid gap-2 sm:grid-cols-2">
               <Field id="e" label="Email" error={s.fieldErrors?.email}><Input id="e" name="email" type="email" required /></Field>
               <Field id="r" label="Ruolo"><Select id="r" name="role" defaultValue="dipendente">{Object.entries(MEMBER_ROLES).filter(([k]) => isOwner || k !== "amministratore").map(([k, l]) => <option key={k} value={k}>{l}</option>)}</Select></Field>
             </div>
             <fieldset><legend className="mb-1 text-sm font-semibold">Permessi (vuoto = predefiniti del ruolo)</legend>
               <div className="grid gap-2 sm:grid-cols-3">{Object.entries(PERMISSIONS).map(([k, l]) => <Checkbox key={k} id={`np-${k}`} name="permissions" value={k} label={l} />)}</div></fieldset>
-          </>)}
+          </>))(initialFormState)}
         </ActionForm>
       </Card>
       {(members ?? []).map((m) => (

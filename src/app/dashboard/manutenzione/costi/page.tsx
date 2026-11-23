@@ -11,6 +11,7 @@ import { deleteExpense, saveExpense } from "@/lib/actions/garage";
 import { EXPENSE_LABELS } from "@/lib/labels";
 import { formatPrice } from "@/lib/format";
 import { formatDate } from "@/lib/utils";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Costi di manutenzione", robots: { index: false } };
 const MONTHS = ["gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"];
@@ -70,7 +71,7 @@ async function Costs() {
       <Card className="p-5 lg:sticky lg:top-24 lg:self-start">
         <h2 className="mb-3 font-bold">Nuova spesa</h2>
         <ActionForm action={saveExpense} submitLabel="Registra spesa" resetOnSuccess>
-          {(s) => { const fe = s.fieldErrors ?? {}; return (<>
+          {((s: FormState) => { const fe = s.fieldErrors ?? {}; return (<>
             <Field id="ex-v" label="Automobile" error={fe.user_vehicle_id}><Select id="ex-v" name="user_vehicle_id">{vehicles.map((v) => <option key={v.id} value={v.id}>{v.make} {v.model}</option>)}</Select></Field>
             <Field id="ex-c" label="Categoria" error={fe.category}><Select id="ex-c" name="category">{Object.entries(EXPENSE_LABELS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</Select></Field>
             <div className="grid grid-cols-2 gap-3">
@@ -78,7 +79,7 @@ async function Costs() {
               <Field id="ex-d" label="Data" error={fe.spent_on}><Input id="ex-d" name="spent_on" type="date" max={new Date().toISOString().slice(0, 10)} /></Field>
             </div>
             <Field id="ex-de" label="Descrizione" optional><Input id="ex-de" name="description" maxLength={300} /></Field>
-          </>); }}
+          </>); })(initialFormState)}
         </ActionForm>
       </Card>
     </div>

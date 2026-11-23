@@ -16,6 +16,7 @@ import { addPartCompatibility, deletePartCompatibility, deletePartImage, registe
 import { PART_STATUS_LABELS } from "@/lib/labels";
 import { publicFileUrl } from "@/lib/storage";
 import { BRANDS, findBrand } from "@/config/brands";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Modifica ricambio", robots: { index: false } };
 
@@ -68,7 +69,7 @@ async function Editor({ params, searchParams }: { params: PageProps<"/dashboard/
               ))}
             </ul>
             <ActionForm action={addPartCompatibility} submitLabel="Aggiungi compatibilità" hidden={{ part_id: id }} resetOnSuccess>
-              {(s) => (
+              {((s: FormState) => (
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Field id="cm-mk" label="Marca"><Select id="cm-mk" name="make_slug" defaultValue=""><option value="" disabled>Scegli…</option>{BRANDS.map((b) => <option key={b.slug} value={b.slug}>{b.name}</option>)}</Select></Field>
                   <Field id="cm-md" label="Modello" error={s.fieldErrors?.model}><Input id="cm-md" name="model" /></Field>
@@ -81,18 +82,18 @@ async function Editor({ params, searchParams }: { params: PageProps<"/dashboard/
                   <Field id="cm-o" label="Riferimento OEM" optional><Input id="cm-o" name="oem_reference" /></Field>
                   <Field id="cm-b" label="Fonte"><Select id="cm-b" name="basis" defaultValue="dichiarazione_venditore"><option value="dichiarazione_venditore">Mia dichiarazione</option><option value="codice_oem">Corrispondenza del codice OEM</option></Select></Field>
                 </div>
-              )}
+              ))(initialFormState)}
             </ActionForm>
           </Card>
           {canSubmit && (
             <Card className="p-6">
               <h2 className="mb-3 text-lg font-bold">3. Invio in revisione</h2>
               <ActionForm action={submitPart} submitLabel="Invia in revisione" hidden={{ part_id: id }}>
-                {(s) => (<>
+                {((s: FormState) => (<>
                   <Checkbox id="sp1" name="declare_accuracy" label="Le informazioni (codici, condizione, compatibilità) sono corrette e il prodotto non è contraffatto." error={s.fieldErrors?.declare_accuracy} />
                   <Checkbox id="sp2" name="declare_photos" label="Ho il diritto di usare le fotografie caricate." error={s.fieldErrors?.declare_photos} />
                   <Checkbox id="sp3" name="accept_terms" label={<>Accetto le <Link href="/termini" className="underline">condizioni della piattaforma</Link>.</>} error={s.fieldErrors?.accept_terms} />
-                </>)}
+                </>))(initialFormState)}
               </ActionForm>
             </Card>
           )}

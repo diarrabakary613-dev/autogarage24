@@ -11,6 +11,7 @@ import { deleteDriverProfile, saveDriverProfile } from "@/lib/actions/driver";
 import { getPublishedRuleVersions } from "@/lib/data/neo";
 import { driverSituation } from "@/lib/neopatentati/engine";
 import { FUEL_LABELS, TRANSMISSION_LABELS } from "@/lib/labels";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Profilo neopatentato", robots: { index: false } };
 
@@ -41,7 +42,7 @@ async function Content() {
     <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
       <Card className="p-6">
         <ActionForm action={saveDriverProfile} submitLabel="Salva profilo">
-          {(s) => (
+          {((s: FormState) => (
             <div className="grid gap-4 sm:grid-cols-2">
               <Field id="dp-d" label="Data di conseguimento patente" error={s.fieldErrors?.license_obtained_on}><Input id="dp-d" name="license_obtained_on" type="date" max={today} defaultValue={p?.license_obtained_on ?? ""} /></Field>
               <Field id="dp-c" label="Categoria"><Select id="dp-c" name="license_category" defaultValue={p?.license_category ?? "B"}><option value="B">B</option><option value="B96">B96</option><option value="BE">BE</option><option value="altra">Altra</option></Select></Field>
@@ -50,7 +51,7 @@ async function Content() {
               <Field id="dp-f" label="Alimentazione preferita" optional><Select id="dp-f" name="fuel" defaultValue={prefs.fuel ?? ""}><option value="">Indifferente</option>{Object.entries(FUEL_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</Select></Field>
               <Field id="dp-t" label="Cambio preferito" optional><Select id="dp-t" name="transmission" defaultValue={prefs.transmission ?? ""}><option value="">Indifferente</option>{Object.entries(TRANSMISSION_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</Select></Field>
             </div>
-          )}
+          ))(initialFormState)}
         </ActionForm>
         {p && (
           <div className="mt-6 border-t border-line pt-4">

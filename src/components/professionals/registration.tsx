@@ -8,6 +8,7 @@ import { Breadcrumbs } from "@/components/marketing/page-hero";
 import { getCurrentUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { activateProfessional } from "@/lib/actions/professional";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 type Kind = "officina" | "meccanico" | "venditore_ricambi";
 
@@ -61,7 +62,7 @@ async function Start({ kind, path }: { kind: Kind; path: string }) {
     <Card className="p-6">
       <h2 className="mb-3 text-xl font-bold">Attiva il profilo professionale</h2>
       <ActionForm action={activateProfessional} submitLabel="Continua" hidden={{ kind }}>
-        {(s) => <Field id="bn" label={kind === "meccanico" ? "Nome professionale" : "Nome dell'attività"} error={s.fieldErrors?.business_name} hint={kind === "meccanico" ? "Puoi usare nome e cognome o un nome commerciale." : undefined}><Input id="bn" name="business_name" maxLength={120} /></Field>}
+        {((s: FormState) => <Field id="bn" label={kind === "meccanico" ? "Nome professionale" : "Nome dell'attività"} error={s.fieldErrors?.business_name} hint={kind === "meccanico" ? "Puoi usare nome e cognome o un nome commerciale." : undefined}><Input id="bn" name="business_name" maxLength={120} /></Field>)(initialFormState)}
       </ActionForm>
     </Card>
   );

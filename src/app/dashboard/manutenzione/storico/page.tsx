@@ -14,6 +14,7 @@ import { deleteRecord, saveRecord } from "@/lib/actions/garage";
 import { MAINTENANCE_LABELS, RECORD_SOURCE_LABELS } from "@/lib/labels";
 import { formatKm, formatPrice } from "@/lib/format";
 import { formatDate } from "@/lib/utils";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Storico manutenzione", robots: { index: false } };
 
@@ -76,7 +77,7 @@ async function Timeline({ searchParams }: { searchParams: PageProps<"/dashboard/
       <Card className="p-5 lg:sticky lg:top-24 lg:self-start">
         <h2 className="mb-3 font-bold">Registra un intervento</h2>
         <ActionForm action={saveRecord} submitLabel="Aggiungi allo storico" resetOnSuccess>
-          {(s) => { const fe = s.fieldErrors ?? {}; return (<>
+          {((s: FormState) => { const fe = s.fieldErrors ?? {}; return (<>
             <Field id="mr-v" label="Automobile" error={fe.user_vehicle_id}><Select id="mr-v" name="user_vehicle_id" defaultValue={current !== "tutte" ? current : vehicles[0].id}>{vehicles.map((v) => <option key={v.id} value={v.id}>{v.make} {v.model}</option>)}</Select></Field>
             <Field id="mr-t" label="Titolo" error={fe.title}><Input id="mr-t" name="title" placeholder="Es. Tagliando 60.000 km" /></Field>
             <div className="grid grid-cols-2 gap-3">
@@ -90,7 +91,7 @@ async function Timeline({ searchParams }: { searchParams: PageProps<"/dashboard/
             <Field id="mr-pa" label="Ricambi utilizzati" optional><Input id="mr-pa" name="parts_used" /></Field>
             <Field id="mr-n" label="Note" optional><Input id="mr-n" name="notes" /></Field>
             <Checkbox id="mr-x" name="add_expense" defaultChecked label="Registra il costo anche tra le spese" />
-          </>); }}
+          </>); })(initialFormState)}
         </ActionForm>
         <p className="mt-3 text-xs text-muted">Gli interventi registrati da te sono indicati come tali e non risultano certificati da un&apos;officina. Puoi allegare la fattura dalla sezione Documenti.</p>
       </Card>

@@ -16,6 +16,7 @@ import { LOCATION_TYPES, ROADSIDE_ACTIVE, ROADSIDE_NEXT, ROADSIDE_SERVICES, ROAD
 import { formatPrice } from "@/lib/format";
 import { nowMs } from "@/lib/bookings/time";
 import { formatDateTime } from "@/lib/utils";
+import { initialFormState, type FormState } from "@/lib/validation/form-state";
 
 export const metadata: Metadata = { title: "Richiesta di assistenza", robots: { index: false } };
 
@@ -187,7 +188,7 @@ function OperatorQuote({ r, target }: { r: R; target: { status: string } }) {
       <h2 className="font-bold">{target.status === "preventivo" ? "Aggiorna il preventivo" : "Invia un preventivo"}</h2>
       <p className="text-xs text-muted">Indirizzo esatto e telefono ti arrivano se il cliente accetta. Indica solo prezzi e tempi che puoi garantire.</p>
       <ActionForm action={sendRoadsideQuote} submitLabel="Invia preventivo" hidden={{ id: r.id }}>
-        {(s) => (
+        {((s: FormState) => (
           <div className="grid gap-3 sm:grid-cols-2">
             <Field id="qa" label="Prezzo totale (€, IVA inclusa)" error={s.fieldErrors?.amount}><Input id="qa" name="amount" type="number" min={0} step="0.01" required inputMode="decimal" /></Field>
             <Field id="qe" label="Arrivo stimato (minuti)" error={s.fieldErrors?.eta_minutes}><Input id="qe" name="eta_minutes" type="number" min={5} max={720} required /></Field>
@@ -197,7 +198,7 @@ function OperatorQuote({ r, target }: { r: R; target: { status: string } }) {
             <Field id="qd" label="Condizioni e limitazioni" optional className="sm:col-span-2"><Input id="qd" name="conditions" maxLength={400} /></Field>
             <Field id="qv" label="Validità"><Select id="qv" name="valid_minutes" defaultValue="60"><option value="30">30 minuti</option><option value="60">1 ora</option><option value="180">3 ore</option><option value="1440">24 ore</option></Select></Field>
           </div>
-        )}
+        ))(initialFormState)}
       </ActionForm>
       <ActionForm action={declineRoadside} submitLabel="Non posso intervenire" variant="ghost" size="sm" hidden={{ id: r.id }}>
         <Field id="dr" label="Motivo per il cliente" optional><Input id="dr" name="reason" maxLength={300} /></Field>
